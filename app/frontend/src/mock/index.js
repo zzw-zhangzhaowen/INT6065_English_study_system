@@ -10,26 +10,25 @@ const page = p => ({ code: 200, message: 'success', data: p })
 
 function pickRole(username = '') {
   const u = String(username).toLowerCase()
-  if (u.includes('admin')) return 'ROLE_ADMIN'
+  // 管理员端已并入教师端：admin 仍可登录，进入的是教师工作台（含系统管理）
+  if (u.includes('admin')) return 'ROLE_TEACHER'
   if (u.includes('teacher') || u.includes('t0') || u === 'laoshi') return 'ROLE_TEACHER'
   return 'ROLE_STUDENT'
 }
 
 function buildUser(username) {
   const role = pickRole(username)
-  if (role === 'ROLE_ADMIN') {
-    return { id: 1, username: username || 'admin', nickname: '系统管理员', realName: '系统管理员', role, avatar: '' }
-  }
   if (role === 'ROLE_TEACHER') {
+    const isAdminLike = String(username || '').toLowerCase().includes('admin')
     return {
-      id: 2001,
+      id: isAdminLike ? 1 : 2001,
       username: username || 'teacher',
-      nickname: '李老师',
-      realName: '李静',
+      nickname: isAdminLike ? '系统管理员' : '李老师',
+      realName: isAdminLike ? '系统管理员' : '李静',
       role,
       avatar: '',
       className: '2024级英语1班',
-      title: '讲师',
+      title: isAdminLike ? '系统管理员' : '讲师',
       department: '外国语学院'
     }
   }
@@ -113,6 +112,65 @@ export function resolveMock(config) {
   if (/^\/group\/\d+\/join$/.test(url)) return ok({ success: true })
   if (/^\/group\/\d+\/quit$/.test(url)) return ok({ success: true })
   if (/^\/community\/user\/\d+\/(follow|unfollow)$/.test(url)) return ok({ success: true })
+
+  /* ---------------- 系统管理（原管理员端） ---------------- */
+  if (url === '/admin/user/page') return page(db.adminUserPage(params))
+  if (url === '/admin/role/list') {
+    return ok([
+      { id: 1, roleCode: 'ROLE_ADMIN', roleName: '系统管理员' },
+      { id: 2, roleCode: 'ROLE_TEACHER', roleName: '教师' },
+      { id: 3, roleCode: 'ROLE_STUDENT', roleName: '学生' }
+    ])
+  }
+  if (url === '/admin/config/list') return ok(db.SYSTEM_CONFIG)
+  if (url.startsWith('/admin/config/') && method === 'post') return ok({ success: true })
+  if (url === '/admin/question/stats') return ok({ total: 14, byType: { READING: 5, SINGLE_CHOICE: 5, CLOZE: 2, TRANSLATION: 1, WRITING: 1 } })
+  if (url === '/admin/exam/stats') return ok({ total: 8, ongoing: 1, finished: 3 })
+  if (url === '/dashboard/admin') {
+    return ok({
+      totalUsers: db.STUDENTS.length + 12,
+      todayNewUsers: 3,
+      onlineUsers: db.MONITOR_DATA.overview.onlineUsers,
+      ongoingExams: 1,
+      totalExamRecords: 96,
+      storageUsed: 186,
+      storageTotal: 512,
+      roleDistribution: [
+        { name: '学生', value: db.STUDENTS.length },
+        { name: '教师', value: 12 }
+      ]
+    })
+  }
+
+  if (url === '/log/page') return page(db.operationLogPage(params))
+  if (url === '/log/recent') return ok(db.OPERATION_LOGS.slice(0, 6))
+  if (url === '/log/stats') {
+    const failed = db.OPERATION_LOGS.filter(l => l.status === 0).length
+    return ok({
+      totalCount: db.OPERATION_LOGS.length,
+      todayCount: db.OPERATION_LOGS.filter(l => String(l.createTime).startsWith('2026-11-13')).length,
+      successCount: db.OPERATION_LOGS.length - failed,
+      failCount: failed
+    })
+  }
+
+  if (url === '/monitor/cpu') return ok(db.MONITOR_DATA.cpu)
+  if (url === '/monitor/memory') return ok(db.MONITOR_DATA.memory)
+  if (url === '/monitor/disk') return ok(db.MONITOR_DATA.disk)
+  if (url === '/monitor/system') return ok(db.MONITOR_DATA.system)
+  if (url === '/monitor/overview') return ok(db.MONITOR_DATA.overview)
+  if (url === '/monitor/realtime') return ok(db.MONITOR_DATA.realtime)
+  if (url === '/monitor/realtime/history') return ok(db.MONITOR_DATA.realtimeHistory)
+  if (url === '/monitor/jvm') return ok(db.MONITOR_DATA.jvm)
+  if (url === '/monitor/redis') return ok(db.MONITOR_DATA.redis)
+
+  if (url === '/backup/list') {
+    return ok([
+      { filename: 'db-2026-11-11.sql', size: '18.4 MB', createTime: '2026-11-11 02:00:00' },
+      { filename: 'db-2026-11-04.sql', size: '17.9 MB', createTime: '2026-11-04 02:00:00' },
+      { filename: 'db-2026-10-28.sql', size: '17.2 MB', createTime: '2026-10-28 02:00:00' }
+    ])
+  }
 
   /* ---------------- 教师端 ---------------- */
   if (url === '/dashboard/teacher') return ok(db.teacherDashboardStats())

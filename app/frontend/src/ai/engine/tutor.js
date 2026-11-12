@@ -206,35 +206,166 @@ export function analyzeLongSentence({ text = '' } = {}) {
     return { ...matched, matched: true }
   }
 
-  // 通用拆解：按连接词切分，给出结构骨架（不编造译文）
-  const markers = [
-    { re: /\bthat\b/i, role: 'that 从句（可能是定语从句、同位语从句或宾语从句）' },
-    { re: /\bwhich\b/i, role: 'which 从句（非限制性定语从句）' },
-    { re: /\bwho\b/i, role: 'who 从句（修饰人）' },
-    { re: /\bwhose\b/i, role: 'whose 从句（修饰所属关系）' },
-    { re: /\bwhere\b|\bwhen\b|\bwhy\b/i, role: '关系副词引导的定语从句' },
-    { re: /\bbecause\b|\bsince\b|\bas\b/i, role: '原因状语从句' },
-    { re: /\balthough\b|\bthough\b|\bwhile\b/i, role: '让步/对比状语从句' },
-    { re: /\bif\b|\bunless\b/i, role: '条件状语从句' },
-    { re: /\bto\s+\w+/i, role: '不定式（可能是目的状语或后置定语）' },
-    { re: /\b\w+ing\b/i, role: '现在分词（主动/进行，作修饰）' },
-    { re: /\b\w+ed\b/i, role: '过去分词（被动/完成，作修饰）' }
-  ]
-  const found = markers.filter(m => m.re.test(t)).map(m => m.role)
+  return analyzeByRules(t)
+}
+
+/* ---------------- 通用长难句规则拆解 ---------------- */
+
+// 从句引导词
+const CLAUSE_LEAD = /^(and|but|or|so|yet|nor|which|who|whom|whose|that|where|when|why|how|because|although|though|while|if|unless|since|as|after|before|once|until|whether|even)\b/i
+// 介词 + 关系代词
+const PREP_REL = /\b(to|of|in|on|at|for|with|by|from|about|into|over|under|through)\s+(which|whom|whose)\b/i
+// 谓语动词（含助动词与情态动词）
+const PREDICATE_RE = /\b(am|is|are|was|were|be|been|being|has|have|had|do|does|did|will|would|shall|should|can|could|may|might|must|remains?|seems?|becomes?|appears?|makes?|means?|shows?|suggests?|requires?|allows?|helps?|needs?)\b/i
+
+function splitTopLevel(s) {
+  const parts = []
+  let depth = 0
+  let cur = ''
+  for (const ch of s) {
+    if (ch === '(' || ch === '[') depth++
+    else if (ch === ')' || ch === ']') depth--
+    if (depth === 0 && (ch === ',' || ch === ';')) {
+      if (cur.trim()) parts.push(cur.trim())
+      cur = ''
+      continue
+    }
+    cur += ch
+  }
+  if (cur.trim()) parts.push(cur.trim())
+  return parts
+}
+
+function isClausePart(p) {
+  const s = p.replace(/^[,;\s]+/, '')
+  return PREP_REL.test(s) || CLAUSE_LEAD.test(s)
+}
+
+// 取名词短语的头部（截到第一个从句标记之前）
+function headOf(p) {
+  if (!p) return ''
+  let head = p
+  const m = head.match(PREP_REL)
+  if (m) head = head.slice(0, m.index)
+  const w = head.match(/\b(which|that|who|whom|whose|where|when|why)\b/i)
+  if (w) head = head.slice(0, w.index)
+  return head.trim().replace(/^[,;\s]+|[,;\s]+$/g, '')
+}
+
+// 末尾实词，用于推断被修饰对象
+function lastNoun(p) {
+  const ws = String(p || '').replace(/[.,;:]+$/, '').split(/\s+/).filter(Boolean)
+  const stop = /^(the|a|an|of|to|in|on|at|for|with|by|from|and|or|but|is|are|was|were|that|which|who|whom|whose|it|its|this|these|those|his|her|their|our|my|your)$/i
+  for (let i = ws.length - 1; i >= 0; i--) {
+    if (!stop.test(ws[i])) return ws[i]
+  }
+  return ws[ws.length - 1] || ''
+}
+
+function analyzeByRules(t) {
   const wordsArr = t.split(/\s+/).filter(Boolean)
-  const clauseCount = found.length + 1
+  const parts = splitTopLevel(t)
+  const mainParts = []
+  const clauseParts = []
+  for (const p of parts) {
+    if (isClausePart(p)) clauseParts.push(p)
+    else mainParts.push(p)
+  }
+
+  // 定位主句主语与谓语部分
+  let subject = ''
+  let predicate = ''
+  if (mainParts.length >= 2) {
+    subject = headOf(mainParts[0])
+    predicate = mainParts[mainParts.length - 1]
+  } else if (mainParts.length === 1) {
+    const only = mainParts[0]
+    const m = only.match(PREDICATE_RE)
+    if (m && m.index > 0) {
+      subject = only.slice(0, m.index).trim()
+      predicate = only.slice(m.index).trim()
+    } else {
+      subject = headOf(only)
+      predicate = ''
+    }
+  }
+
+  // 主干仍不完整时的最后兜底：第一个谓语前为主语
+  if (!subject) {
+    const m = t.match(PREDICATE_RE)
+    subject = m && m.index > 0 ? t.slice(0, m.index).trim() : wordsArr.slice(0, 2).join(' ')
+  }
+  if (!predicate) {
+    const rest = t.slice(t.indexOf(subject) + subject.length)
+    predicate = rest.split(',')[0].replace(/^[,;\s]+/, '').trim()
+  }
+
+  const backbone = `${subject} ${predicate}`.replace(/\s+/g, ' ').trim()
+
+  // 修饰成分：从句逐个定位，并推断被修饰对象
+  const modifiers = []
+  let prevChunk = subject
+  for (const p of clauseParts) {
+    const body = p.replace(/^[,;\s]+/, '')
+    const prep = body.match(PREP_REL)
+    const lead = body.match(CLAUSE_LEAD)
+    let role = '从句'
+    if (prep) {
+      role = `介词 + 关系代词引导的定语从句（${prep[1]} which/whom）`
+    } else if (lead) {
+      const w = lead[1].toLowerCase()
+      if (['which', 'who', 'whom', 'whose', 'that', 'where', 'when', 'why'].includes(w)) role = '定语从句'
+      else if (['because', 'since', 'as', 'for'].includes(w)) role = '原因状语从句'
+      else if (['although', 'though', 'while', 'even'].includes(w)) role = '让步/对比状语从句'
+      else if (['if', 'unless', 'whether'].includes(w)) role = '条件状语从句'
+      else if (['after', 'before', 'when', 'until', 'once'].includes(w)) role = '时间状语从句'
+      else role = '并列分句'
+    }
+    modifiers.push({
+      part: body.length > 96 ? body.slice(0, 96) + '…' : body,
+      role,
+      attach: `修饰前文的「${lastNoun(prevChunk) || '前一名词'}」`
+    })
+    prevChunk = body
+  }
+
+  // 非谓语结构补充扫描
+  const nonFinite = [
+    { re: /\bto\s+[a-z]+/i, role: '不定式（目的状语或后置定语）' },
+    { re: /\b[a-z]+ing\b/i, role: '现在分词（主动 / 进行，作修饰）' },
+    { re: /\b[a-z]+ed\b/i, role: '过去分词（被动 / 完成，作修饰）' }
+  ]
+  for (const nf of nonFinite) {
+    const m = t.match(nf.re)
+    if (!m) continue
+    const at = m.index
+    const snippet = t.slice(at, Math.min(t.length, at + 46)).replace(/[,;.]$/, '')
+    if (modifiers.some(x => snippet.startsWith(x.part.slice(0, 12)))) continue
+    modifiers.push({
+      part: snippet,
+      role: nf.role,
+      attach: `修饰「${lastNoun(t.slice(0, at)) || '前文成分'}」`
+    })
+  }
+
+  // 谓语清单，用来支撑"分句数 = 谓语数"的判断
+  const predicates = (t.match(new RegExp(PREDICATE_RE.source, 'gi')) || []).map(s => s.toLowerCase())
+  const clauseCount = Math.max(1, predicates.length)
 
   return {
     text: t,
     matched: false,
     wordCount: wordsArr.length,
     clauseCount,
-    backbone: '（未能自动定主干，请按下面三步自己切一遍）',
-    modifiers: found.map(f => ({ part: '—', role: f, attach: '在该结构出现处切分，判断它修饰谁' })),
+    backbone,
+    modifiers: modifiers.slice(0, 6),
+    predicates: [...new Set(predicates)],
     translation: null,
-    tips: `这句话约 ${wordsArr.length} 词、含 ${clauseCount} 个分句。拆解三步：① 圈出所有谓语动词，数量 = 分句数；② 找到主句的主谓宾；③ 其余成分逐层挂到被修饰的成分上。`
+    tips: `全句 ${wordsArr.length} 词，共找到 ${predicates.length} 个谓语（${[...new Set(predicates)].slice(0, 5).join(' / ')}），所以大约有 ${clauseCount} 个分句。读法是：先只抓主干「${backbone.slice(0, 60)}${backbone.length > 60 ? '…' : ''}」拿到 60% 的意思，再把 ${modifiers.length} 处修饰成分逐层挂回去——修饰成分只补充细节，不影响主干判断。`
   }
 }
+
+
 
 /* ============================================================
    4. 口语评测（基于文本的估算，非真实音频分析）

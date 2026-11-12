@@ -138,7 +138,7 @@
     <div class="alert-section">
       <div class="section-header">
         <h3>最近异常操作</h3>
-        <el-button type="primary" link @click="$router.push('/admin/log')">查看全部日志</el-button>
+        <el-button type="primary" link @click="$router.push('/teacher/log')">查看全部日志</el-button>
       </div>
       <el-table :data="recentErrors" style="width: 100%" size="small">
         <el-table-column prop="createTime" label="时间" width="180" />
@@ -419,8 +419,25 @@ const updateCharts = () => {
   }
 }
 
+// 预填图表历史点（演示数据），避免首屏趋势图只有一个点
+const seedChartHistory = () => {
+  if (chartHistory.timestamps.length) return
+  const pad = (n) => String(n).padStart(2, '0')
+  const now = Date.now()
+  const TOTAL = 24
+  for (let i = TOTAL - 1; i >= 0; i--) {
+    const d = new Date(now - i * 5000)
+    chartHistory.timestamps.push(`${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`)
+    const seedCpu = 24 + ((i * 7) % 22)
+    const seedMem = 40 + ((i * 5) % 16)
+    chartHistory.cpuData.push(seedCpu)
+    chartHistory.memoryData.push(seedMem)
+  }
+}
+
 // 初始化图表
 const initCharts = () => {
+  seedChartHistory()
   const commonOption = (name, color) => ({
     tooltip: {
       trigger: 'axis',

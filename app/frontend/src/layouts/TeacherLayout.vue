@@ -61,6 +61,21 @@
           <el-icon><ChatDotRound /></el-icon>
           <template #title>消息中心</template>
         </el-menu-item>
+
+        <!-- 原管理员端已并入教师端，统一收敛在「系统管理」下 -->
+        <el-sub-menu index="system-manage">
+          <template #title>
+            <el-icon><Setting /></el-icon>
+            <span>系统管理</span>
+          </template>
+          <el-menu-item index="/teacher/system-dashboard">系统仪表板</el-menu-item>
+          <el-menu-item index="/teacher/user">用户管理</el-menu-item>
+          <el-menu-item index="/teacher/system">系统配置</el-menu-item>
+          <el-menu-item index="/teacher/log">日志审计</el-menu-item>
+          <el-menu-item index="/teacher/monitor">系统监控</el-menu-item>
+          <el-menu-item index="/teacher/backup">系统备份</el-menu-item>
+          <el-menu-item index="/teacher/photo">图片管理</el-menu-item>
+        </el-sub-menu>
       </el-menu>
 
       <div class="sidebar-footer">
@@ -158,7 +173,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import {
   Reading, DataAnalysis, Document, List, FolderOpened, User,
-  Fold, Expand, Bell, ArrowDown, InfoFilled, ChatDotRound, VideoCamera
+  Fold, Expand, Bell, ArrowDown, InfoFilled, ChatDotRound, VideoCamera, Setting
 } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { messageApi } from '@/api/message'

@@ -320,72 +320,62 @@ const routes = [
         name: 'TeacherProfile',
         component: () => import('@/views/teacher/profile/ProfileHome.vue'),
         meta: { title: '个人中心', role: 'teacher' }
+      },
+
+      /* ---- 原管理员端功能，已并入教师端「系统管理」 ---- */
+      {
+        path: 'system-dashboard',
+        name: 'TeacherSystemDashboard',
+        component: () => import('@/views/admin/Dashboard.vue'),
+        meta: { title: '系统仪表板', role: 'teacher' }
+      },
+      {
+        path: 'user',
+        name: 'TeacherUser',
+        component: () => import('@/views/admin/user/UserManagement.vue'),
+        meta: { title: '用户管理', role: 'teacher' }
+      },
+      {
+        path: 'system',
+        name: 'TeacherSystem',
+        component: () => import('@/views/admin/system/SystemConfig.vue'),
+        meta: { title: '系统配置', role: 'teacher' }
+      },
+      {
+        path: 'log',
+        name: 'TeacherLog',
+        component: () => import('@/views/admin/log/LogAudit.vue'),
+        meta: { title: '日志审计', role: 'teacher' }
+      },
+      {
+        path: 'monitor',
+        name: 'TeacherMonitor',
+        component: () => import('@/views/admin/monitor/SystemMonitor.vue'),
+        meta: { title: '系统监控', role: 'teacher' }
+      },
+      {
+        path: 'backup',
+        name: 'TeacherBackup',
+        component: () => import('@/views/admin/backup/BackupManagement.vue'),
+        meta: { title: '系统备份', role: 'teacher' }
+      },
+      {
+        path: 'photo',
+        name: 'TeacherPhoto',
+        component: () => import('@/views/admin/PhotoManagement.vue'),
+        meta: { title: '图片管理', role: 'teacher' }
       }
     ]
   },
 
-  // 管理员端
+  // 旧的管理员端入口统一重定向到教师端，避免历史链接 404
   {
     path: '/admin',
-    component: () => import('@/layouts/AdminLayout.vue'),
-    redirect: '/admin/dashboard',
-    meta: { requiresAuth: true, role: 'admin' },
-    children: [
-      {
-        path: 'dashboard',
-        name: 'AdminDashboard',
-        component: () => import('@/views/admin/Dashboard.vue'),
-        meta: { title: '系统仪表板', role: 'admin' }
-      },
-      {
-        path: 'user',
-        name: 'AdminUser',
-        component: () => import('@/views/admin/user/UserManagement.vue'),
-        meta: { title: '用户管理', role: 'admin' }
-      },
-      {
-        path: 'system',
-        name: 'AdminSystem',
-        component: () => import('@/views/admin/system/SystemConfig.vue'),
-        meta: { title: '系统配置', role: 'admin' }
-      },
-      {
-        path: 'log',
-        name: 'AdminLog',
-        component: () => import('@/views/admin/log/LogAudit.vue'),
-        meta: { title: '日志审计', role: 'admin' }
-      },
-      {
-        path: 'monitor',
-        name: 'AdminMonitor',
-        component: () => import('@/views/admin/monitor/SystemMonitor.vue'),
-        meta: { title: '系统监控', role: 'admin' }
-      },
-      {
-        path: 'backup',
-        name: 'AdminBackup',
-        component: () => import('@/views/admin/backup/BackupManagement.vue'),
-        meta: { title: '系统备份', role: 'admin' }
-      },
-      {
-        path: 'photo',
-        name: 'AdminPhoto',
-        component: () => import('@/views/admin/PhotoManagement.vue'),
-        meta: { title: '图片管理', role: 'admin' }
-      },
-      {
-        path: 'message',
-        name: 'AdminMessage',
-        component: () => import('@/components/MessageCenter.vue'),
-        meta: { title: '消息中心', role: 'admin' }
-      },
-      {
-        path: 'profile',
-        name: 'AdminProfile',
-        component: () => import('@/views/teacher/profile/ProfileHome.vue'),
-        meta: { title: '个人中心', role: 'admin' }
-      }
-    ]
+    redirect: '/teacher/dashboard'
+  },
+  {
+    path: '/admin/:pathMatch(.*)*',
+    redirect: '/teacher/dashboard'
   },
 
   // 错误页面
@@ -482,8 +472,8 @@ router.beforeEach((to, from, next) => {
 // 登录后根据角色跳转
 export function redirectAfterLogin(userRole) {
   switch (userRole) {
+    // 管理员端已并入教师端，统一进入教师工作台
     case 'admin':
-      return '/admin/dashboard'
     case 'teacher':
       return '/teacher/dashboard'
     default:

@@ -1279,3 +1279,205 @@ export function groupPage(params = {}) {
   return paginate([...GROUPS], params)
 }
 
+/* ============================================================
+ * 系统管理（原管理员端，现已并入教师端）
+ * ============================================================ */
+
+const ROLE_NAMES = { ROLE_ADMIN: '系统管理员', ROLE_TEACHER: '教师', ROLE_STUDENT: '学生' }
+
+export const ADMIN_USERS = STUDENTS.slice(0, 17).map((s, i) => ({
+  id: s.id,
+  username: s.username,
+  realName: s.realName,
+  nickname: s.nickname,
+  avatar: '',
+  email: s.email,
+  phone: s.phone,
+  className: s.className,
+  role: 'student',
+  roleName: '学生',
+  roles: ['ROLE_STUDENT'],
+  status: i % 11 === 5 ? 0 : 1,
+  createTime: s.createTime,
+  lastLogin: `2026-11-${String(12 - (i % 4)).padStart(2, '0')} ${String(9 + (i % 10)).padStart(2, '0')}:${String((i * 7) % 60).padStart(2, '0')}:00`
+})).concat([
+  {
+    id: 2001,
+    username: 'teacher',
+    realName: '李静',
+    nickname: '李老师',
+    avatar: '',
+    email: 'lijing@edu.cn',
+    phone: '13800002001',
+    role: 'teacher',
+    roleName: '教师',
+    roles: ['ROLE_TEACHER'],
+    status: 1,
+    createTime: '2026-01-08T09:00:00',
+    lastLogin: '2026-11-13 08:42:00'
+  },
+  {
+    id: 2002,
+    username: 'teacher2',
+    realName: '王敏',
+    nickname: '王老师',
+    avatar: '',
+    email: 'wangmin@edu.cn',
+    phone: '13800002002',
+    role: 'teacher',
+    roleName: '教师',
+    roles: ['ROLE_TEACHER'],
+    status: 1,
+    createTime: '2026-02-11T09:00:00',
+    lastLogin: '2026-11-12 19:20:00'
+  },
+  {
+    id: 1,
+    username: 'teacher',
+    realName: '系统管理员',
+    nickname: '系统管理员',
+    avatar: '',
+    email: 'admin@edu.cn',
+    phone: '13800000001',
+    role: 'teacher',
+    roleName: '系统管理员',
+    roles: ['ROLE_TEACHER'],
+    status: 1,
+    createTime: '2026-01-01T00:00:00',
+    lastLogin: '2026-11-13 08:05:00'
+  }
+])
+
+export function adminUserPage(params = {}) {
+  let list = [...ADMIN_USERS]
+  if (params.keyword) {
+    const k = String(params.keyword)
+    list = list.filter(u => u.username.includes(k) || u.realName.includes(k) || u.email.includes(k))
+  }
+  if (params.role) list = list.filter(u => u.role === String(params.role).toLowerCase())
+  if (params.status !== undefined && params.status !== '' && params.status !== null) {
+    list = list.filter(u => String(u.status) === String(params.status))
+  }
+  return paginate(list, params)
+}
+
+export const OPERATION_LOGS = [
+  { id: 90001, username: 'teacher', operation: '发布考试：CET4 全真模拟（第 6 套）', module: '考试管理', ipAddress: '192.168.1.24', status: 1, createTime: '2026-11-13 08:42:11', executeTime: 132 },
+  { id: 90002, username: 'teacher', operation: '批改作文：Online Learning: Benefits and Challenges', module: 'AI 教学助手', ipAddress: '192.168.1.24', status: 1, createTime: '2026-11-13 08:31:07', executeTime: 864 },
+  { id: 90003, username: 'student', operation: '提交试卷：CET4 全真模拟（第 6 套）', module: '在线考试', ipAddress: '192.168.1.88', status: 1, createTime: '2026-11-13 08:20:35', executeTime: 2210 },
+  { id: 90004, username: 'student', operation: 'AI 作文批改', module: 'AI 智能辅导', ipAddress: '192.168.1.88', status: 1, createTime: '2026-11-13 08:12:44', executeTime: 1180 },
+  { id: 90005, username: 'teacher', operation: '修改系统配置：考试默认时长', module: '系统配置', ipAddress: '192.168.1.10', status: 1, createTime: '2026-11-13 08:05:18', executeTime: 96 },
+  { id: 90006, username: 'teacher2', operation: '创建课堂：IELTS 口语 Part 2 话题卡速构', module: '在线课堂', ipAddress: '192.168.1.31', status: 1, createTime: '2026-11-12 20:41:02', executeTime: 208 },
+  { id: 90007, username: 'student', operation: '每日打卡', module: '学习打卡', ipAddress: '192.168.1.88', status: 1, createTime: '2026-11-12 19:03:51', executeTime: 44 },
+  { id: 90008, username: 'unknown', operation: '登录失败：密码错误', module: '用户认证', ipAddress: '203.0.113.45', status: 0, createTime: '2026-11-12 18:22:09', executeTime: 38, method: 'POST /api/auth/login', errorMsg: 'BadCredentialsException：用户名或密码错误' },
+  { id: 90016, username: 'student', operation: '提交作文批改', module: 'AI 智能辅导', ipAddress: '192.168.1.88', status: 0, createTime: '2026-11-12 17:48:31', executeTime: 30, method: 'POST /api/ai/writing/grade', errorMsg: 'BusinessException：作文少于 100 词，未达到批改门槛' },
+  { id: 90017, username: 'teacher2', operation: '上传听力音频', module: '资源管理', ipAddress: '192.168.1.31', status: 0, createTime: '2026-11-11 10:12:55', executeTime: 412, method: 'POST /api/file/upload', errorMsg: 'MaxUploadSizeExceededException：文件大小超过 20MB 限制' },
+  { id: 90009, username: 'teacher', operation: '导入题库：CET4 阅读 12 题', module: '题库管理', ipAddress: '192.168.1.24', status: 1, createTime: '2026-11-12 16:10:33', executeTime: 1420 },
+  { id: 90010, username: 'student', operation: '收藏学习资源：CET4 听力高频场景词', module: '学习中心', ipAddress: '192.168.1.64', status: 1, createTime: '2026-11-12 15:47:12', executeTime: 61 },
+  { id: 90011, username: 'teacher', operation: '导出操作日志（近 7 天）', module: '日志审计', ipAddress: '192.168.1.10', status: 1, createTime: '2026-11-12 14:05:00', executeTime: 530 },
+  { id: 90012, username: 'teacher2', operation: '编辑作业：Unit 5 写作练习', module: '作业管理', ipAddress: '192.168.1.31', status: 1, createTime: '2026-11-12 11:32:47', executeTime: 178 },
+  { id: 90013, username: 'student', operation: '查看错题解析：虚拟语气', module: '错题本', ipAddress: '192.168.1.88', status: 1, createTime: '2026-11-12 10:15:26', executeTime: 72 },
+  { id: 90014, username: 'teacher', operation: '结束课堂：CET4 阅读：仔细阅读题型定位', module: '在线课堂', ipAddress: '192.168.1.24', status: 1, createTime: '2026-11-11 16:02:14', executeTime: 88 },
+  { id: 90015, username: 'teacher', operation: '数据备份：db-2026-11-11.sql', module: '系统备份', ipAddress: '192.168.1.10', status: 1, createTime: '2026-11-11 02:00:00', executeTime: 8420 }
+]
+
+export function operationLogPage(params = {}) {
+  let list = [...OPERATION_LOGS]
+  if (params.keyword) {
+    const k = String(params.keyword)
+    list = list.filter(l => l.operation.includes(k) || l.username.includes(k))
+  }
+  if (params.status !== undefined && params.status !== '' && params.status !== null) {
+    list = list.filter(l => String(l.status) === String(params.status))
+  }
+  return paginate(list, params)
+}
+
+export const SYSTEM_CONFIG = {
+  systemName: '英语等级智能学习与考试系统',
+  systemLogo: '',
+  copyright: '© 2026 English Learning System',
+  icp: '京 ICP 备 2026000000 号',
+  examDefaultDuration: 120,
+  examSwitchWarning: 3,
+  examAutoSubmit: true,
+  examScoreDecimal: 1,
+  uploadMaxSize: 20,
+  uploadAllowTypes: 'jpg,png,pdf,docx,mp3',
+  smtpHost: 'smtp.edu.cn',
+  smtpPort: 465,
+  senderEmail: 'noreply@edu.cn',
+  senderPassword: ''
+}
+
+export const MONITOR_DATA = {
+  cpu: {
+    model: 'Intel Core i7-12700 @ 2.10GHz',
+    availableProcessors: 12,
+    usagePercent: 32,
+    systemLoadAverage: 1.24,
+    processCpuLoad: '18%',
+    systemCpuLoad: '32%'
+  },
+  memory: { total: '3.4 GB', used: '3.4 GB', max: '8.0 GB', usagePercent: 43, free: '4.6 GB' },
+  disk: {
+    totalSpace: '512 GB',
+    usedSpace: '186 GB',
+    freeSpace: '326 GB',
+    usagePercent: 36,
+    disks: [
+      { path: 'C:\\', total: '400 GB', used: '142 GB', free: '258 GB', usagePercent: 36 },
+      { path: 'D:\\', total: '112 GB', used: '44 GB', free: '68 GB', usagePercent: 39 }
+    ]
+  },
+  overview: {
+    onlineUsers: 47,
+    todayActive: 128,
+    totalStudents: 186,
+    totalTeachers: 12,
+    examCount: 8,
+    questionCount: 14
+  },
+  system: {
+    osName: 'Windows 11',
+    osVersion: '10.0.22631',
+    osArch: 'amd64',
+    javaVersion: '17.0.9',
+    javaVendor: 'Eclipse Adoptium',
+    javaHome: 'C:\\Program Files\\Java\\jdk-17.0.9',
+    userDir: 'D:\\edu\\english-system\\app\\backend',
+    startTime: '2026-11-12 02:00:00',
+    runDays: 1
+  },
+  jvm: {
+    name: 'OpenJDK 64-Bit Server VM',
+    version: '17.0.9+9',
+    uptime: '1 天 6 小时 12 分钟',
+    startTime: '2026-11-12 02:00:00',
+    heapMemory: { used: '420 MB', max: '1024 MB', usagePercent: 41 },
+    nonHeapMemory: { used: '118 MB', committed: '256 MB' },
+    thread: { active: 48, daemon: 22, peak: 63, totalStarted: 1846 },
+    gc: [
+      { name: 'G1 Young Generation', collectionCount: 42, collectionTime: '1.24s' },
+      { name: 'G1 Old Generation', collectionCount: 2, collectionTime: '0.42s' }
+    ]
+  },
+  redis: {
+    status: 'connected',
+    version: '7.2.3',
+    mode: 'standalone',
+    uptimeInDays: 1,
+    usedMemory: '12.4 MB',
+    usedMemoryPeak: '18.6 MB',
+    connectedClients: 8,
+    totalConnectionsReceived: 2641,
+    error: ''
+  },
+  realtime: { cpuUsage: 32, memoryUsage: 43, threadCount: 48 },
+  realtimeHistory: Array.from({ length: 24 }, (_, i) => ({
+    cpu: 24 + ((i * 7) % 22),
+    memory: 40 + ((i * 5) % 16)
+  }))
+}
+
+

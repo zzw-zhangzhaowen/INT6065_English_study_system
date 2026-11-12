@@ -31,7 +31,7 @@
           type="textarea"
           :rows="8"
           resize="vertical"
-          placeholder="粘贴你的英文作文，或直接手写输入。至少一句完整的话即可开始分析。"
+          :placeholder="placeholderText"
           class="f-body"
         />
 
@@ -43,8 +43,11 @@
             {{ paragraphCount }} 段
             <span class="dot">·</span>
             {{ sentenceCount }} 句
+            <span v-if="!canSubmit" class="need-more">
+              还需 {{ MIN_WORDS - wordCount }} 词 / {{ MIN_WORDS - wordCount }} more words
+            </span>
           </div>
-          <el-button type="primary" :loading="loading" :disabled="!text.trim()" @click="analyze">
+          <el-button type="primary" :loading="loading" :disabled="!canSubmit" @click="analyze">
             <el-icon><MagicStick /></el-icon>
             开始批改
           </el-button>
@@ -279,12 +282,24 @@ const activeTab = ref('sentence')
 
 const requirement = computed(() => ({ CET4: 120, CET6: 150, TEM4: 200, IELTS: 250 }[level.value] || 120))
 
+// 硬性最低词数：低于此值不允许提交批改（防止空稿/灌水稿）
+const MIN_WORDS = 100
+
 const stats = computed(() => textStats(text.value))
 const wordCount = computed(() => stats.value.wordCount)
 const paragraphCount = computed(() => stats.value.paragraphCount)
 const sentenceCount = computed(() => stats.value.sentenceCount)
 
-const SAMPLE = `Nowadays, more and more student choose to study abroad. I think it is very good for young people. people is easy to find a good job when they have overseas experience. But some student can not afford the cost, so they have to work part time in restaurant. In my opinion, i think the government should give them informations and advices. with the development of society, this problem will be solve by itself. Although it is difficult, but we should try our best to help them.`
+// 达到最低词数才可提交
+const canSubmit = computed(() => wordCount.value >= MIN_WORDS)
+
+// 空输入时在输入框内直接说明规则（中英双语）
+const placeholderText = computed(() =>
+  `请粘贴或输入你的英文作文，不少于 ${MIN_WORDS} 词后可开始批改。\n` +
+  `Paste or type your essay here — at least ${MIN_WORDS} words to start grading.`
+)
+
+const SAMPLE = `Nowadays, more and more student choose to study abroad. I think it is very good for young people. people is easy to find a good job when they have overseas experience, and they can also learn a lot of new thing from different culture. But some student can not afford the cost, so they have to work part time in restaurant. They must spend much time on their study and their work at the same time, which is very tired for them. In my opinion, i think the government should give them informations and advices. with the development of society, this problem will be solve by itself. Although it is difficult, but we should try our best to help them.`
 
 const sampleTitles = [
   'Online Learning: Benefits and Challenges',
@@ -350,6 +365,11 @@ const radarShort = computed(() =>
 
 async function analyze() {
   if (!text.value.trim()) return
+  // 硬性词数门槛：不足 100 词直接拦下
+  if (wordCount.value < MIN_WORDS) {
+    ElMessage.warning(`作文不少于 ${MIN_WORDS} 词才能批改，当前 ${wordCount.value} 词，还需 ${MIN_WORDS - wordCount.value} 词`)
+    return
+  }
   loading.value = true
   result.value = null
   try {
@@ -461,6 +481,15 @@ async function copyCorrected() {
 
     &.warn {
       color: #d97706;
+    }
+
+    &.need-more {
+      margin-left: 8px;
+      padding: 1px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+      color: #b45309;
+      background: rgba(251, 191, 36, 0.16);
     }
   }
 
