@@ -29,10 +29,7 @@ jobs:
           cache-dependency-path: app/frontend/package-lock.json
 
       - name: Configure Pages
-        id: pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - name: Install dependencies
         working-directory: app/frontend
