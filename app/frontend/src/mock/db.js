@@ -1433,10 +1433,10 @@ export const MONITOR_DATA = {
   overview: {
     onlineUsers: 47,
     todayActive: 128,
-    totalStudents: 186,
-    totalTeachers: 12,
+    totalStudents: 32,
+    totalTeachers: 2,
     examCount: 8,
-    questionCount: 14
+    questionCount: 1240
   },
   system: {
     osName: 'Windows 11',
