@@ -981,3 +981,301 @@ export function resourcePage(params = {}) {
   if (params.keyword) list = list.filter(r => r.resourceName.includes(params.keyword))
   return paginate(list, params)
 }
+
+/* ============================================================
+ * 在线课堂
+ * ============================================================ */
+
+export const CLASSROOMS = [
+  {
+    id: 9001,
+    classroomName: 'CET4 听力精讲：长对话信息定位',
+    description: '以 2025 年 12 月真题为素材，逐题拆解长对话中的时间、地点、态度三类关键信息。',
+    teacherName: '李静',
+    status: 'LIVE',
+    startTime: '2026-11-13 10:00:00',
+    currentStudents: 38,
+    coverImage: ''
+  },
+  {
+    id: 9002,
+    classroomName: '写作提分：三段式结构到衔接手段',
+    description: '从评分标准出发，演示如何用衔接词把模板句改写成连贯段落。',
+    teacherName: '李静',
+    status: 'LIVE',
+    startTime: '2026-11-13 09:30:00',
+    currentStudents: 24,
+    coverImage: ''
+  },
+  {
+    id: 9003,
+    classroomName: 'IELTS 口语 Part 2 话题卡速构',
+    description: '1 分钟准备、2 分钟陈述的实操训练，含话题卡拆分与扩展思路。',
+    teacherName: '王敏',
+    status: 'PENDING',
+    startTime: '2026-11-14 19:00:00',
+    currentStudents: 0,
+    coverImage: ''
+  },
+  {
+    id: 9004,
+    classroomName: '词汇速记：词根词缀拆解示范',
+    description: '用 20 个高频词根串起 CET4 核心词汇，演示可复用的记忆路径。',
+    teacherName: '李静',
+    status: 'PENDING',
+    startTime: '2026-11-15 15:30:00',
+    currentStudents: 0,
+    coverImage: ''
+  },
+  {
+    id: 9005,
+    classroomName: 'CET4 阅读：仔细阅读题型定位',
+    description: '题干关键词回文定位与干扰项特征分析，配套真题演练。',
+    teacherName: '王敏',
+    status: 'ENDED',
+    startTime: '2026-11-10 14:00:00',
+    currentStudents: 0,
+    coverImage: ''
+  },
+  {
+    id: 9006,
+    classroomName: '错题讲评：翻译与写作共性问题',
+    description: '汇总本班近两周作业中暴露的时态、搭配与中式表达问题，集中讲评。',
+    teacherName: '李静',
+    status: 'ENDED',
+    startTime: '2026-11-08 16:00:00',
+    currentStudents: 0,
+    coverImage: ''
+  }
+]
+
+export function classroomLive() {
+  return CLASSROOMS.filter(c => c.status === 'LIVE')
+}
+
+export function classroomPage(params = {}) {
+  let list = [...CLASSROOMS]
+  if (params.status) list = list.filter(c => c.status === String(params.status).toUpperCase())
+  if (params.keyword) list = list.filter(c => c.classroomName.includes(params.keyword))
+  return paginate(list, params)
+}
+
+/* ============================================================
+ * 学习社区
+ * ============================================================ */
+
+export const COMMUNITY_POSTS = [
+  {
+    id: 7001,
+    title: '作文从 12 分到 14 分，我把 AI 批改的建议落成了三张清单',
+    content: '连续两周用 AI 批改同一类作文，把它指出的错误归类后发现：时态错误占了一半、衔接词反复只用 and/but。于是整理了三张自查清单，第二次写同类题目时分数直接上了一个档。',
+    author: '张伟',
+    authorName: '张伟',
+    avatar: '',
+    likes: 46,
+    likeCount: 46,
+    comments: 12,
+    commentCount: 12,
+    replyCount: 12,
+    viewCount: 328,
+    createTime: '2026-11-12 21:40:00',
+    tags: ['写作', 'AI批改'],
+    isTop: true,
+    isTopped: true,
+    isEssence: true,
+    isFeatured: true,
+    isLiked: false
+  },
+  {
+    id: 7002,
+    title: 'CET4 听力总在长对话丢分，有没有同款？',
+    content: '每次听到数字和时间就断片，做完对答案发现不是没听到，而是记不下来。想问问大家做笔记时都记什么。',
+    author: '李思远',
+    authorName: '李思远',
+    avatar: '',
+    likes: 28,
+    likeCount: 28,
+    comments: 19,
+    commentCount: 19,
+    replyCount: 19,
+    viewCount: 214,
+    createTime: '2026-11-12 19:05:00',
+    tags: ['听力', 'CET4'],
+    isTop: false,
+    isTopped: false,
+    isEssence: false,
+    isLiked: true
+  },
+  {
+    id: 7003,
+    title: '分享一个我用了两周的每日打卡节奏',
+    content: '早上 15 分钟词汇、中午 20 分钟听力、晚上 30 分钟阅读加错题回顾。打卡连续 14 天了，最大的感受是任务拆小之后更容易坚持。',
+    author: '陈雨桐',
+    authorName: '陈雨桐',
+    avatar: '',
+    likes: 63,
+    likeCount: 63,
+    comments: 8,
+    commentCount: 8,
+    replyCount: 8,
+    viewCount: 402,
+    createTime: '2026-11-11 22:18:00',
+    tags: ['打卡', '学习计划'],
+    isTop: false,
+    isTopped: false,
+    isEssence: true,
+    isFeatured: true,
+    isLiked: false
+  },
+  {
+    id: 7004,
+    title: 'IELTS 口语 Part 2 话题卡，我的 1 分钟准备法',
+    content: '把话题卡拆成 who / what / why / feeling 四格，每格只写两个关键词，剩下的靠连接句串起来。练了十套之后基本不会卡壳。',
+    author: '王思琪',
+    authorName: '王思琪',
+    avatar: '',
+    likes: 51,
+    likeCount: 51,
+    comments: 15,
+    commentCount: 15,
+    replyCount: 15,
+    viewCount: 356,
+    createTime: '2026-11-10 20:30:00',
+    tags: ['口语', 'IELTS'],
+    isTop: false,
+    isTopped: false,
+    isEssence: false,
+    isLiked: false
+  },
+  {
+    id: 7005,
+    title: '错题本按知识点重排之后，复习效率明显变高',
+    content: '原来按时间顺序堆着，回看时找不到规律。后来按虚拟语气、非谓语、定语从句分组，一次只攻一类，两天就能感觉出差别。',
+    author: '刘子涵',
+    authorName: '刘子涵',
+    avatar: '',
+    likes: 37,
+    likeCount: 37,
+    comments: 6,
+    commentCount: 6,
+    replyCount: 6,
+    viewCount: 189,
+    createTime: '2026-11-09 21:12:00',
+    tags: ['错题本', '语法'],
+    isTop: false,
+    isTopped: false,
+    isEssence: false,
+    isLiked: false
+  },
+  {
+    id: 7006,
+    title: '求组队：一起刷 12 月 CET4 真题，每晚八点',
+    content: '打算每晚八点做一套听力加阅读，做完在群里对答案、互相讲错题。希望能凑够五个人。',
+    author: '赵一鸣',
+    authorName: '赵一鸣',
+    avatar: '',
+    likes: 22,
+    likeCount: 22,
+    comments: 23,
+    commentCount: 23,
+    replyCount: 23,
+    viewCount: 267,
+    createTime: '2026-11-09 18:44:00',
+    tags: ['组队', 'CET4'],
+    isTop: false,
+    isTopped: false,
+    isEssence: false,
+    isLiked: false
+  }
+]
+
+// 社区页按 username 渲染作者名，这里统一补上中文名，避免显示「匿名用户」
+COMMUNITY_POSTS.forEach(p => { p.username = p.username || p.authorName || p.author })
+
+export function communityPostPage(params = {}) {
+  let list = [...COMMUNITY_POSTS]
+  if (params.keyword) {
+    const k = String(params.keyword)
+    list = list.filter(p => p.title.includes(k) || p.content.includes(k))
+  }
+  if (params.topic || params.tag) {
+    const t = String(params.topic || params.tag)
+    list = list.filter(p => (p.tags || []).includes(t))
+  }
+  return paginate(list, params)
+}
+
+export const HOT_TOPICS = [
+  { id: 1, name: 'CET4 听力提分', topic: 'CET4 听力提分', count: 128, postCount: 128 },
+  { id: 2, name: 'AI 批改怎么用', topic: 'AI 批改怎么用', count: 96, postCount: 96 },
+  { id: 3, name: '写作衔接词', topic: '写作衔接词', count: 78, postCount: 78 },
+  { id: 4, name: 'IELTS 口语 Part2', topic: 'IELTS 口语 Part2', count: 64, postCount: 64 },
+  { id: 5, name: '每日打卡', topic: '每日打卡', count: 57, postCount: 57 }
+]
+
+export const ACTIVE_USERS = [
+  { id: 1001, userId: 1001, username: 'zhangwei', nickname: '张伟', name: '张伟', avatar: '', postCount: 18, checkinDate: '2026-11-13' },
+  { id: 1003, userId: 1003, username: 'chenyutong', nickname: '陈雨桐', name: '陈雨桐', avatar: '', postCount: 15, checkinDate: '2026-11-13' },
+  { id: 1004, userId: 1004, username: 'wangsiqi', nickname: '王思琪', name: '王思琪', avatar: '', postCount: 12, checkinDate: '2026-11-12' },
+  { id: 1002, userId: 1002, username: 'lisiyuan', nickname: '李思远', name: '李思远', avatar: '', postCount: 9, checkinDate: '2026-11-12' },
+  { id: 1005, userId: 1005, username: 'liuzihan', nickname: '刘子涵', name: '刘子涵', avatar: '', postCount: 7, checkinDate: '2026-11-11' }
+]
+
+// 活跃用户列表同样优先展示中文姓名
+ACTIVE_USERS.forEach(u => { if (u.nickname) u.username = u.nickname })
+
+export const GROUPS = [
+  {
+    id: 601,
+    groupName: 'CET4 十二月冲刺组',
+    name: 'CET4 十二月冲刺组',
+    groupIntro: '每晚八点真题打卡，做完对答案并互相讲错题。',
+    currentMembers: 42,
+    members: 42,
+    maxMembers: 60,
+    joined: false
+  },
+  {
+    id: 602,
+    groupName: 'IELTS 口语互练',
+    name: 'IELTS 口语互练',
+    groupIntro: '每周两次语音互练，按话题卡轮流提问与点评。',
+    currentMembers: 28,
+    members: 28,
+    maxMembers: 40,
+    joined: true
+  },
+  {
+    id: 603,
+    groupName: '写作批改互助',
+    name: '写作批改互助',
+    groupIntro: '提交作文后互相按四维标准打分，再用 AI 批改结果对照。',
+    currentMembers: 35,
+    members: 35,
+    maxMembers: 50,
+    joined: false
+  },
+  {
+    id: 604,
+    groupName: '词汇词根党',
+    name: '词汇词根党',
+    groupIntro: '每天一个词根，分享衍生的高频词与例句。',
+    currentMembers: 51,
+    members: 51,
+    maxMembers: 80,
+    joined: false
+  }
+]
+
+export function groupRecommend(limit = 5) {
+  return GROUPS.slice(0, limit)
+}
+
+export function groupMy() {
+  return GROUPS.filter(g => g.joined)
+}
+
+export function groupPage(params = {}) {
+  return paginate([...GROUPS], params)
+}
+

@@ -47,6 +47,11 @@
           <template #title>学习资源</template>
         </el-menu-item>
 
+        <el-menu-item index="/teacher/classroom">
+          <el-icon><VideoCamera /></el-icon>
+          <template #title>在线课堂</template>
+        </el-menu-item>
+
         <el-menu-item index="/teacher/student">
           <el-icon><User /></el-icon>
           <template #title>学生管理</template>
@@ -153,7 +158,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import {
   Reading, DataAnalysis, Document, List, FolderOpened, User,
-  Fold, Expand, Bell, ArrowDown, InfoFilled, ChatDotRound
+  Fold, Expand, Bell, ArrowDown, InfoFilled, ChatDotRound, VideoCamera
 } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { messageApi } from '@/api/message'

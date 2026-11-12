@@ -41,22 +41,36 @@
           <el-menu-item index="/student/learning/wrong">错题本</el-menu-item>
         </el-sub-menu>
 
-        <!-- AI 只保留四个高频入口，其余能力从「功能总览」进入，避免侧边栏过重 -->
+        <el-menu-item index="/student/classroom">
+          <el-icon><VideoCamera /></el-icon>
+          <template #title>在线课堂</template>
+        </el-menu-item>
+
+        <!-- AI 能力按汇报 PPT 的六大最小功能顺序排列，便于演示讲解 -->
         <el-sub-menu index="ai">
           <template #title>
             <el-icon><MagicStick /></el-icon>
             <span>AI智能辅导</span>
           </template>
           <el-menu-item index="/student/ai-tutor">功能总览</el-menu-item>
-          <el-menu-item index="/student/ai-tutor/chat">AI对话</el-menu-item>
           <el-menu-item index="/student/ai-tutor/writing">作文批改</el-menu-item>
+          <el-menu-item index="/student/ai-tutor/speaking">口语陪练</el-menu-item>
           <el-menu-item index="/student/ai-tutor/wrong">错题溯源</el-menu-item>
+          <el-menu-item index="/student/ai-tutor/chat">AI对话</el-menu-item>
+          <el-menu-item index="/student/ai-tutor/sentence">长难句拆解</el-menu-item>
+          <el-menu-item index="/student/ai-tutor/vocab">词汇速记</el-menu-item>
           <el-menu-item index="/student/ai-tutor/plan">学习计划</el-menu-item>
+          <el-menu-item index="/student/ai-tutor/profile">学习画像</el-menu-item>
         </el-sub-menu>
 
         <el-menu-item index="/student/checkin">
           <el-icon><Calendar /></el-icon>
           <template #title>每日打卡</template>
+        </el-menu-item>
+
+        <el-menu-item index="/student/community">
+          <el-icon><ChatLineRound /></el-icon>
+          <template #title>学习社区</template>
         </el-menu-item>
 
         <el-menu-item index="/student/profile">
@@ -230,7 +244,8 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 import {
   Reading, HomeFilled, Document, MagicStick, User,
   Fold, Expand, Search, Bell, ArrowDown, Setting, SwitchButton, InfoFilled,
-  Calendar, EditPen, Loading, ArrowRight, Notebook, ChatLineRound, UserFilled
+  Calendar, EditPen, Loading, ArrowRight, Notebook, ChatLineRound, UserFilled,
+  VideoCamera
 } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { messageApi } from '@/api/message'

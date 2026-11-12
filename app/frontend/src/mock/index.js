@@ -83,6 +83,37 @@ export function resolveMock(config) {
     return ok({ success: true })
   }
 
+  /* ---------------- 在线课堂 ---------------- */
+  if (url === '/classroom/live') return ok(db.classroomLive())
+  if (url === '/classroom/page') return page(db.classroomPage(params))
+  if (url === '/classroom/teacher') return ok(db.CLASSROOMS.filter(c => c.teacherName === '李静'))
+  if (url === '/classroom/student') return ok(db.CLASSROOMS)
+  if (/^\/classroom\/\d+$/.test(url) && method === 'get') {
+    return ok(db.CLASSROOMS.find(c => c.id === Number(url.split('/').pop())) || db.CLASSROOMS[0])
+  }
+
+  /* ---------------- 学习社区 ---------------- */
+  if (url === '/community/post/page') return page(db.communityPostPage(params))
+  if (url === '/community/post' && method === 'post') {
+    return ok({ id: Date.now(), ...body, author: body.author || '张伟', likes: 0, comments: 0, viewCount: 0 })
+  }
+  if (url === '/community/hot-topics') return ok(db.HOT_TOPICS)
+  if (url === '/community/active-users') return ok(db.ACTIVE_USERS)
+  if (/^\/community\/post\/\d+$/.test(url) && method === 'get') {
+    const id = Number(url.split('/').pop())
+    return ok(db.COMMUNITY_POSTS.find(p => p.id === id) || db.COMMUNITY_POSTS[0])
+  }
+  if (/^\/community\/post\/\d+\/like$/.test(url)) return ok({ success: true })
+  if (/^\/community\/post\/\d+\/comment/.test(url)) return ok({ success: true })
+
+  /* ---------------- 学习小组 ---------------- */
+  if (url === '/group/recommend') return ok(db.groupRecommend(Number(params.limit) || 5))
+  if (url === '/group/my') return ok(db.groupMy())
+  if (url === '/group/page') return page(db.groupPage(params))
+  if (/^\/group\/\d+\/join$/.test(url)) return ok({ success: true })
+  if (/^\/group\/\d+\/quit$/.test(url)) return ok({ success: true })
+  if (/^\/community\/user\/\d+\/(follow|unfollow)$/.test(url)) return ok({ success: true })
+
   /* ---------------- 教师端 ---------------- */
   if (url === '/dashboard/teacher') return ok(db.teacherDashboardStats())
   if (url === '/classroom/today') return ok(db.todaySchedule())
