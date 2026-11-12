@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.english.learning.mapper.QuestionMapper">
+
+    <select id="selectPageWithCategory" resultType="com.english.learning.entity.Question">
+        SELECT q.* FROM question q
+        <where>
+            q.deleted = 0
+            <if test="categoryId != null">
+                AND q.category_id = #{categoryId}
+            </if>
+            <if test="questionType != null and questionType != ''">
+                AND q.question_type = #{questionType}
+            </if>
+            <if test="difficulty != null">
+                AND q.difficulty = #{difficulty}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (q.title LIKE CONCAT('%', #{keyword}, '%')
+                     OR q.content LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY q.create_time DESC
+    </select>
+
+</mapper>

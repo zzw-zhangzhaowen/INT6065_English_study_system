@@ -1,0 +1,149 @@
+// 全局样式变量和基础样式
+// 注意：详细设计令牌见 tokens.scss，此处保留旧变量名做兼容映射
+:root {
+  // 主题色 - 科技蓝（光感白科技方案）
+  --primary-color: #2563eb;
+  --primary-light: #5b8bf5;
+  --primary-dark: #1d4ed8;
+
+  // 功能色
+  --success-color: #0e9f6e;
+  --warning-color: #d97706;
+  --danger-color: #dc2626;
+  --info-color: #2563eb;
+
+  // 中性色
+  --text-primary: #0e1a32;
+  --text-regular: #4e5f7c;
+  --text-secondary: #8494ae;
+  --text-placeholder: #a9b6c9;
+
+  // 背景色
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f8fd;
+  --bg-tertiary: #eef3fb;
+
+  // 边框色
+  --border-color: #e7edf8;
+  --border-light: #f0f4fa;
+
+  // 阴影
+  --shadow-sm: 0 1px 2px 0 rgba(16, 38, 84, 0.05);
+  --shadow-md: 0 8px 24px -16px rgba(16, 38, 84, 0.35);
+  --shadow-lg: 0 20px 48px -26px rgba(16, 38, 84, 0.42);
+
+  // 圆角
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+
+  // 间距
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--primary-light);
+  }
+}
+
+// 滚动条样式
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-placeholder);
+  border-radius: 3px;
+
+  &:hover {
+    background: var(--text-secondary);
+  }
+}
+
+// 通用工具类
+.flex {
+  display: flex;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// 卡片基础样式
+.card {
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-lg);
+}
+
+// 页面容器
+.page-container {
+  padding: var(--spacing-lg);
+  min-height: calc(100vh - 60px);
+}
+
+// 渐变背景
+.gradient-bg {
+  background: #818cf8;
+}
+
+.gradient-primary {
+  background: var(--primary-color);
+}

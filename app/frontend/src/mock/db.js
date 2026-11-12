@@ -1,0 +1,983 @@
+// ============================================================
+// 演示数据库 · 模拟教师端所需的完整业务数据
+// 说明：后端未启动时全站自动走这里，保证「打开就能看到东西」
+// 数据由稳定种子生成，刷新不会变
+// ============================================================
+
+/* ---------------- 班级与学生 ---------------- */
+export const CLASSES = [
+  { id: 1, name: '2024级英语1班', grade: '2024', major: '英语', count: 32 },
+  { id: 2, name: '2023级商务英语2班', grade: '2023', major: '商务英语', count: 28 }
+]
+
+const NAMES = [
+  '张伟', '李娜', '王芳', '刘洋', '陈静', '杨帆', '赵敏', '黄磊',
+  '周涛', '吴倩', '徐鹏', '孙悦', '马超', '朱琳', '胡军', '郭婷',
+  '林浩', '何静', '高远', '罗曼', '郑爽', '梁宇', '谢萌', '唐磊',
+  '韩雪', '曹阳', '邓超', '冯雨', '曾亮', '彭丹', '蒋文', '董雪'
+]
+
+const PINYIN = [
+  'zhangwei', 'lina', 'wangfang', 'liuyang', 'chenjing', 'yangfan', 'zhaomin', 'huanglei',
+  'zhoutao', 'wuqian', 'xupeng', 'sunyue', 'machao', 'zhulin', 'hujun', 'guoting',
+  'linhao', 'hejing', 'gaoyuan', 'luoman', 'zhengshuang', 'liangyu', 'xiemeng', 'tanglei',
+  'hanxue', 'caoyang', 'dengchao', 'fengyu', 'zengliang', 'pengdan', 'jiangwen', 'dongxue'
+]
+
+// 稳定伪随机
+function rnd(seed) {
+  let s = seed
+  return () => {
+    s = (s * 1103515245 + 12345) & 0x7fffffff
+    return s / 0x7fffffff
+  }
+}
+
+export const STUDENTS = NAMES.map((name, i) => {
+  const r = rnd(i * 977 + 13)
+  const activeOffset = Math.floor(r() * 9)
+  return {
+    id: 1001 + i,
+    username: PINYIN[i],
+    realName: name,
+    nickname: name,
+    className: '2024级英语1班',
+    classId: 1,
+    level: i % 5 === 0 ? 'CET6' : 'CET4',
+    email: `${PINYIN[i]}@stu.edu.cn`,
+    phone: `138****${String(1000 + i * 7).slice(-4)}`,
+    totalScore: 480 + Math.floor(r() * 180),
+    checkinDays: 8 + Math.floor(r() * 40),
+    studyHours: Math.round((20 + r() * 90) * 10) / 10,
+    lastActiveDays: activeOffset,
+    status: 1,
+    createTime: `2026-0${(i % 8) + 1}-1${i % 9}T09:00:00`
+  }
+})
+
+export const STUDENT_MAP = STUDENTS.reduce((acc, s) => {
+  acc[s.id] = s
+  return acc
+}, {})
+
+/* ---------------- 作业 ---------------- */
+export const HOMEWORKS = [
+  {
+    id: 501,
+    title: 'Online Learning: Benefits and Challenges',
+    description: 'Write a short essay on the advantages and problems of online learning.',
+    content: '不少于 120 词，三段式结构，至少使用 4 个不同的连接词。',
+    totalScore: 100,
+    homeworkType: 'WRITING',
+    level: 'CET4',
+    deadline: '2026-11-18T23:59:59',
+    createTime: '2026-11-10T10:00:00',
+    status: '1',
+    submittedCount: 24,
+    totalCount: 32
+  },
+  {
+    id: 502,
+    title: 'Should Students Take Part-time Jobs?',
+    description: 'Discuss both sides and give your own view.',
+    content: '不少于 120 词，需要给出明确立场。',
+    totalScore: 100,
+    homeworkType: 'WRITING',
+    level: 'CET4',
+    deadline: '2026-11-11T23:59:59',
+    createTime: '2026-11-03T10:00:00',
+    status: '2',
+    submittedCount: 20,
+    totalCount: 32
+  },
+  {
+    id: 503,
+    title: 'Reading in the Digital Age',
+    description: 'Is reading still important for college students?',
+    content: '不少于 150 词，CET6 难度。',
+    totalScore: 100,
+    homeworkType: 'WRITING',
+    level: 'CET6',
+    deadline: '2026-11-25T23:59:59',
+    createTime: '2026-11-12T10:00:00',
+    status: '1',
+    submittedCount: 9,
+    totalCount: 32
+  },
+  {
+    id: 504,
+    title: 'Campus Morning Exercise Policy',
+    description: 'Write an argumentative essay on the compulsory morning exercise policy.',
+    content: '不少于 120 词。',
+    totalScore: 100,
+    homeworkType: 'WRITING',
+    level: 'CET4',
+    deadline: '2026-10-28T23:59:59',
+    createTime: '2026-10-20T10:00:00',
+    status: '2',
+    submittedCount: 30,
+    totalCount: 32
+  },
+  {
+    id: 505,
+    title: 'Unit 3 Vocabulary & Grammar Drill',
+    description: 'Complete the exercises in Unit 3.',
+    content: '选择题 20 道 + 填空 10 道。',
+    totalScore: 50,
+    homeworkType: 'NORMAL',
+    level: 'CET4',
+    deadline: '2026-11-20T23:59:59',
+    createTime: '2026-11-12T14:00:00',
+    status: '1',
+    submittedCount: 18,
+    totalCount: 32
+  },
+  {
+    id: 506,
+    title: 'Group Presentation Preparation',
+    description: 'Prepare a 5-minute group presentation.',
+    content: '4 人一组，主题自选。',
+    totalScore: 100,
+    homeworkType: 'SPEAKING',
+    level: 'CET4',
+    deadline: '2026-11-30T23:59:59',
+    createTime: '2026-11-13T09:00:00',
+    status: '0',
+    submittedCount: 0,
+    totalCount: 32
+  }
+]
+
+/* ---------------- 作文样本（含真实高频错误） ---------------- */
+export const ESSAYS = [
+  // 0 低分：单段 + 多类硬错
+  `Nowadays, more and more student choose to study abroad. I think it is very good for young people. people is easy to find a good job when they have overseas experience. But some student can not afford the cost, so they have to work part time in restaurant. In my opinion, i think the government should give them informations and advices. with the development of society, this problem will be solve by itself. Although it is difficult, but we should try our best to help them.`,
+
+  // 1 中低：主谓一致 + 中式搭配
+  `There is many reasons why students feel stressed. First, they have too much homework. Second, their parents very want them to get high score. My roommate he go to library every night and study until twelve o'clock. He said he want to learn more knowledge. I think this is not healthy. we should open the light of our mind and find a balance. Besides, school can not only teach knowledge but also teach how to live.`,
+
+  // 2 中等：结构完整但模板化
+  `With the rapid development of technology, online learning become popular among college students. There are several advantages. Firstly, it is convenient, students can study at any time. Secondly, it save money because they do not need to rent a house near school. However, there are also some problems. Some students can not focus on study when they learn at home. In my opinion, online learning is a good supplement but it can not replace the traditional class.`,
+
+  // 3 中上：逻辑清晰，少量错误
+  `Many undergraduates now take part-time jobs while studying. This trend has both benefits and drawbacks. On the one hand, a part-time job helps students acquire practical experience that textbooks cannot provide. For instance, working in a marketing team teaches them how to communicate with clients. On the other hand, excessive working hours may undermine academic performance. Some students skip classes to meet their work schedules, which gradually weakens their foundation. In my view, the key lies in balance. Students should limit their working hours to no more than fifteen per week, and give priority to academic tasks during exam periods.`,
+
+  // 4 高分：论证具体，连接词丰富
+  `The debate over whether university students should be required to attend morning exercises has drawn considerable attention. Those who support the policy argue that regular exercise improves concentration and reduces anxiety, both of which are crucial for academic performance. However, critics maintain that forcing students to exercise at a fixed hour is counterproductive, since sleep deprivation is a more serious problem than lack of movement. From my perspective, the goal is reasonable but the method is questionable. A more effective approach would be to offer flexible exercise options throughout the day and to provide well-maintained facilities. Only when students perceive the arrangement as helpful rather than compulsory will it produce lasting benefits.`,
+
+  // 5 中等：两段，中式表达
+  `Nowadays, alot of people think that reading is not important. According to me, this idea is wrong. Reading can help us to learn knowledge and widen our eyes. When we read a book, we can know different culture and different people. there is many books that can change our life. For example, my teacher he go to read every morning before class. He said reading make him calm. So I think everyone should read more books, not only for exam but also for our life.`,
+
+  // 6 低分：过短
+  `i think students should not play computer games. it is waste of time. some student play games all night and then sleep in class. this is very bad. school should stop them.`,
+
+  // 7 高分：句式与词汇层次好
+  `Collaboration has become an indispensable part of modern education. Group projects, once regarded as a convenient way to reduce marking, are now valued for the competencies they cultivate. Working in a team forces students to articulate their ideas clearly, negotiate differences, and meet deadlines that depend on others. These are precisely the skills employers expect. Nevertheless, collaboration can fail when responsibilities are unclear. Without explicit role allocation, one or two members usually carry the workload while the rest contribute little. Teachers therefore need to design tasks with individual accountability, for example by requiring each member to submit a short reflection. In short, group work is valuable not because it is easier, but because it is harder.`,
+
+  // 8 高分：切题（在线学习），三段 + 连接词
+  `Online learning has moved from an emergency measure to a routine option for college students. Its advantages are evident. To begin with, it removes geographical barriers: a student in a small city can attend lectures delivered by leading scholars. Furthermore, recorded sessions allow learners to revisit difficult points at their own pace, which is almost impossible in a crowded classroom. The challenges, however, are equally real. Without external structure, many students postpone tasks until the deadline, and the absence of face-to-face discussion weakens their ability to defend an argument. In my view, online learning works best as a complement rather than a replacement. A sensible arrangement would combine recorded lectures with weekly seminars, so that flexibility is preserved without sacrificing interaction.`,
+
+  // 9 中等：切题（在线学习），两段，少量错误
+  `Online learning become more and more popular in recent years. There is many advantages for students. Firstly, they can study at home and save the time of going to school. Secondly, they can watch the video again when they do not understand. However, some student can not control themselves. They often open the video but play phone at the same time. In my opinion, online learning is useful, but students should make a plan and follow it strictly.`,
+
+  // 10 中上：切题（数字时代阅读），论证具体
+  `Some observers argue that reading has lost its value in an age of short videos. The evidence, however, points elsewhere. Reading remains the most efficient way to acquire structured knowledge, because a book forces the reader to follow an argument from premise to conclusion rather than receiving isolated fragments. It also trains sustained attention, a capacity that fragmented media actively erode. What has changed is the format, not the need. Students now read on screens, skim abstracts and discuss passages in group chats. The challenge for teachers is therefore to guide selection rather than to defend a particular medium. In short, reading is not obsolete; it has simply become a skill that requires deliberate practice.`,
+
+  // 11 高分：切题（在线学习的教师角色），角度独特
+  `Much of the discussion about online learning focuses on platforms and bandwidth, yet the decisive factor is still the teacher. A recorded lecture can deliver content, but it cannot notice that half the class is lost at the third slide. What effective online courses do instead is restructure the teacher's role: less time on one-way explanation, more time on designing tasks, reviewing drafts and responding to individual confusion. This shift is uncomfortable, because it demands that instructors give up the script they have rehearsed for years. The gain, however, is substantial. When explanations are recorded once and watched repeatedly, classroom hours can be spent on argument and feedback, which is precisely where students fail on their own. Online learning therefore does not diminish teaching; it relocates it.`,
+
+  // 12 高分：切题（在线学习的自律问题），论证集中
+  `The central problem with online learning is not technology but attention. In a classroom, attention is maintained by external structure: a fixed timetable, a visible instructor and the mild pressure of being observed. Remove those cues and the responsibility shifts to the learner, who is usually unprepared for it. Students describe this honestly. They open a lecture, answer a message, and discover forty minutes later that the argument has moved on without them. Solutions that merely add surveillance miss the point. What helps is a clearer contract: short units with defined outcomes, weekly submissions that cannot be postponed, and discussion groups small enough that silence is noticed. Autonomy is valuable, but it has to be taught rather than assumed.`
+]
+
+// 每份作业配一组主题相近的作文，避免「全部跑题」导致评分失真
+const ESSAY_POOLS = {
+  501: [8, 11, 9, 2, 12, 9, 0],
+  502: [3, 3, 4, 1, 3, 9],
+  503: [5, 10, 5, 7, 10],
+  504: [4, 4, 7, 3, 4],
+  505: [1, 2],
+  506: [0, 1]
+}
+
+const OPENINGS = [
+  'This question often comes up in our campus discussions. ',
+  'Last week our teacher asked us to discuss this topic in class. ',
+  'In recently years, this question has been discussed by many people. ',
+  'When i first came to university, i did not think about this question. ',
+  'There is a phenomenon that more and more students pay attention to this issue. ',
+  'Personally, I have thought about this topic for quite a long time. ',
+  'As we all know, this is a hot topic among student. ',
+  'Few issues are discussed as frequently as this one among undergraduates. '
+]
+
+function buildContent(studentIndex, homeworkIndex) {
+  const hwId = HOMEWORKS[homeworkIndex]?.id
+  const pool = ESSAY_POOLS[hwId] || [0, 1, 2]
+  const essay = ESSAYS[pool[studentIndex % pool.length]]
+  const opening = OPENINGS[(studentIndex * 5 + homeworkIndex * 3) % OPENINGS.length]
+  return opening + essay
+}
+
+/* ---------------- 提交记录 ---------------- */
+const SUBMIT_COUNT = { 501: 24, 502: 20, 503: 9, 504: 30, 505: 18, 506: 0 }
+
+function buildSubmissions() {
+  const map = {}
+  HOMEWORKS.forEach((hw, hi) => {
+    const n = SUBMIT_COUNT[hw.id] || 0
+    const list = []
+    for (let i = 0; i < n; i++) {
+      const stu = STUDENTS[i]
+      const daysAgo = (i % 5) + 1
+      const d = new Date(Date.UTC(2026, 10, 13 - daysAgo, 9 + (i % 12), (i * 7) % 60))
+      list.push({
+        id: hw.id * 1000 + i,
+        homeworkId: hw.id,
+        studentId: stu.id,
+        studentName: stu.realName,
+        content: buildContent(i, hi),
+        submitTime: d.toISOString().slice(0, 19).replace('T', ' '),
+        status: i % 7 === 0 ? 'GRADED' : 'SUBMITTED',
+        score: i % 7 === 0 ? 70 + ((i * 3) % 25) : null,
+        teacherComment: i % 7 === 0 ? '结构完整，注意主谓一致。' : ''
+      })
+    }
+    map[hw.id] = list
+  })
+  return map
+}
+
+export const SUBMISSIONS = buildSubmissions()
+
+/* ---------------- 模拟 API 返回 ---------------- */
+export function teacherDashboardStats() {
+  return {
+    totalStudents: STUDENTS.length,
+    totalExams: 8,
+    totalQuestions: 1240,
+    avgPassRate: 86.4,
+    todaySubmissions: 24,
+    pendingGrade: 42,
+    weekNewStudents: 3,
+    activeStudents: 27
+  }
+}
+
+export function todaySchedule() {
+  return [
+    { id: 9001, startTime: '08:00', endTime: '09:40', title: '大学英语精读（Unit 5）', className: '2024级英语1班', studentCount: 32 },
+    { id: 9002, startTime: '10:00', endTime: '11:40', title: '四级写作专项训练', className: '2024级英语1班', studentCount: 32 },
+    { id: 9003, startTime: '14:00', endTime: '15:40', title: '听力强化（短对话）', className: '2023级商务英语2班', studentCount: 28 }
+  ]
+}
+
+export function learningAlerts() {
+  const arr = STUDENTS.slice(0, 5).map((s, i) => ({
+    id: s.id,
+    realName: s.realName,
+    username: s.username,
+    message: [
+      '连续 5 天未打卡，学习中断',
+      '近两次作业均未提交',
+      '作文语言准确度连续低于 60 分',
+      '本周学习时长仅 1.2 小时',
+      '错题重做正确率 38%，知识点未掌握'
+    ][i],
+    alertReason: '学习异常',
+    level: i < 2 ? 'high' : 'mid'
+  }))
+  return arr
+}
+
+export function scoreTrend(days = 30) {
+  const dates = []
+  const avgScores = []
+  const examCounts = []
+  const r = rnd(20261113)
+  for (let i = Math.min(days, 30); i > 0; i -= Math.max(1, Math.round(days / 10))) {
+    const d = new Date(Date.UTC(2026, 10, 13 - i))
+    dates.push(`${d.getMonth() + 1}/${d.getDate()}`)
+    avgScores.push(Math.round(620 + r() * 70) / 10)
+    examCounts.push(10 + Math.floor(r() * 26))
+  }
+  return { dates, avgScores, examCounts }
+}
+
+export function questionStats() {
+  return {
+    total: 1240,
+    typeStats: {
+      SINGLE_CHOICE: 520,
+      MULTIPLE_CHOICE: 110,
+      FILL_BLANK: 180,
+      TRUE_FALSE: 90,
+      READING: 210,
+      LISTENING: 100,
+      WRITING: 30
+    },
+    difficultyStats: { EASY: 420, MEDIUM: 610, HARD: 210 }
+  }
+}
+
+export function studentPage({ pageNum = 1, pageSize = 10, keyword = '' } = {}) {
+  let list = STUDENTS
+  if (keyword) {
+    list = list.filter(s => s.realName.includes(keyword) || s.username.includes(keyword))
+  }
+  const start = (pageNum - 1) * pageSize
+  return {
+    records: list.slice(start, start + pageSize),
+    total: list.length,
+    current: Number(pageNum),
+    size: Number(pageSize)
+  }
+}
+
+export function studentDetail(id) {
+  const s = STUDENT_MAP[id] || STUDENTS[0]
+  const r = rnd(Number(id) || 1)
+  return {
+    ...s,
+    examCount: 4 + Math.floor(r() * 6),
+    avgScore: 60 + Math.floor(r() * 32),
+    homeworkSubmitRate: 70 + Math.floor(r() * 28),
+    wrongQuestionCount: 12 + Math.floor(r() * 40),
+    recentScores: [62, 68, 71, 74, 78, 82].map(v => v + Math.floor(r() * 8)),
+    weakPoints: ['定语从句', '非谓语动词', '词汇搭配'].slice(0, 1 + Math.floor(r() * 3))
+  }
+}
+
+export function homeworkPage({ pageNum = 1, pageSize = 10 } = {}) {
+  const start = (pageNum - 1) * pageSize
+  return {
+    records: HOMEWORKS.slice(start, start + pageSize),
+    total: HOMEWORKS.length,
+    current: Number(pageNum),
+    size: Number(pageSize)
+  }
+}
+
+export function submissionPage(homeworkId, { pageNum = 1, pageSize = 100 } = {}) {
+  const list = SUBMISSIONS[homeworkId] || []
+  const start = (pageNum - 1) * pageSize
+  return {
+    records: list.slice(start, start + pageSize),
+    total: list.length,
+    current: Number(pageNum),
+    size: Number(pageSize)
+  }
+}
+
+/** 供 AI 汇总使用的结构化输入 */
+export function digestInput(homeworkIds = [501]) {
+  const homeworks = HOMEWORKS.filter(h => homeworkIds.includes(h.id)).map(h => ({
+    id: h.id,
+    title: h.title,
+    level: h.level,
+    submissions: (SUBMISSIONS[h.id] || []).map(s => ({
+      studentId: s.studentId,
+      studentName: s.studentName,
+      content: s.content,
+      submitTime: s.submitTime,
+      score: s.score
+    }))
+  }))
+  return {
+    homeworks,
+    students: STUDENTS.map(s => ({ id: s.id, name: s.realName, className: s.className }))
+  }
+}
+
+/* ---------------- 学生端演示数据 ---------------- */
+export function studentDashboard() {
+  // 字段名与 views/student/Dashboard.vue 读取的一致，否则页面全是 0
+  return {
+    studyTime: 42.5,
+    examCount: 6,
+    correctRate: 78.4,
+    streak: 23,
+    studyDays: 23,
+    homeworkPending: 2,
+    homeworkTotal: 8,
+    wrongQuestionCount: 34,
+    todayTasks: 3
+  }
+}
+
+// 今日学习任务（学生仪表板「今日任务」卡片）
+export function todayPlans() {
+  return [
+    { id: 9011, planName: '语法专项：主谓一致 + 冠词', planType: 'STUDY', estimatedTime: 30, status: 'IN_PROGRESS' },
+    { id: 9012, planName: '长难句拆解 3 句', planType: 'STUDY', estimatedTime: 20, status: 'IN_PROGRESS' },
+    { id: 9013, planName: 'CET4 听力小测（第 3 套）', planType: 'EXAM', estimatedTime: 25, status: 'IN_PROGRESS' },
+    { id: 9014, planName: '错题重做：虚拟语气', planType: 'STUDY', estimatedTime: 15, status: 'COMPLETED' }
+  ]
+}
+
+// 错题统计
+export function wrongStatistics() {
+  return { total: 34, notMastered: 21, mastered: 13, reviewRate: 38.2, weekAdded: 6 }
+}
+
+export const WRONG_QUESTIONS = [
+  {
+    id: 7001,
+    question: 'If I ______ you, I would accept the offer without hesitation.',
+    options: ['am', 'was', 'were', 'be'],
+    answer: 'C',
+    studentAnswer: 'B',
+    knowledge: '虚拟语气',
+    analysis: '与现在事实相反的虚拟条件句，be 动词一律用 were。',
+    createTime: '2026-11-09 20:12:00'
+  },
+  {
+    id: 7002,
+    question: 'The number of applicants ______ increasing steadily.',
+    options: ['are', 'is', 'were', 'have been'],
+    answer: 'B',
+    studentAnswer: 'A',
+    knowledge: '主谓一致',
+    analysis: '主语是 the number（单数），不是 applicants。',
+    createTime: '2026-11-08 19:40:00'
+  },
+  {
+    id: 7003,
+    question: 'This is the village ______ I spent my childhood.',
+    options: ['which', 'that', 'where', 'when'],
+    answer: 'C',
+    studentAnswer: 'A',
+    knowledge: '定语从句',
+    analysis: '先行词是地点，从句成分完整，缺地点状语，用 where。',
+    createTime: '2026-11-07 21:05:00'
+  },
+  {
+    id: 7004,
+    question: 'By the time we arrived, the film ______.',
+    options: ['began', 'has begun', 'had begun', 'was beginning'],
+    answer: 'C',
+    studentAnswer: 'B',
+    knowledge: '时态',
+    analysis: '「过去的过去」用过去完成时 had done。',
+    createTime: '2026-11-05 18:22:00'
+  },
+  {
+    id: 7005,
+    question: 'He is ______ honest man who never breaks a promise.',
+    options: ['a', 'an', 'the', '/'],
+    answer: 'B',
+    studentAnswer: 'A',
+    knowledge: '冠词',
+    analysis: 'honest 的 h 不发音，首音是元音，用 an。',
+    createTime: '2026-11-04 16:10:00'
+  }
+]
+
+/* ---------------- 考试主数据（对齐 /exam/page，学生端与教师端共用） ---------------- */
+export const EXAMS = [
+  {
+    id: 8801,
+    examName: 'CET4 全真模拟（第 6 套）',
+    examType: 'mock',
+    level: 'CET-4',
+    description: '按 2025 年 12 月真题结构组卷：阅读 5 题 + 词汇语法 5 题 + 完形 2 题 + 翻译 1 题 + 写作 1 题，满分 100 分。',
+    startTime: '2026-11-11 08:00:00',
+    endTime: '2026-11-16 23:59:59',
+    duration: 130,
+    questionCount: 14,
+    totalScore: 100,
+    passScore: 60,
+    publishStatus: 1,
+    enableAntiCheat: 0,
+    participantCount: 26,
+    createTime: '2026-11-10 10:00:00'
+  },
+  {
+    id: 8802,
+    examName: 'CET4 词汇专项测试 Unit 3',
+    examType: 'quiz',
+    level: 'CET-4',
+    description: 'Unit 3 核心词汇 50 词，重点考查词性辨析与固定搭配。',
+    startTime: '2026-11-08 14:00:00',
+    endTime: '2026-11-08 14:30:00',
+    duration: 30,
+    questionCount: 14,
+    totalScore: 100,
+    passScore: 60,
+    publishStatus: 1,
+    enableAntiCheat: 0,
+    participantCount: 30,
+    createTime: '2026-11-05 09:20:00'
+  },
+  {
+    id: 8803,
+    examName: 'CET4 阅读理解强化（第 2 套）',
+    examType: 'practice',
+    level: 'CET-4',
+    description: '两篇仔细阅读，训练定位与同义替换识别。',
+    startTime: '2026-11-05 09:00:00',
+    endTime: '2026-11-05 10:00:00',
+    duration: 60,
+    questionCount: 14,
+    totalScore: 100,
+    passScore: 60,
+    publishStatus: 1,
+    enableAntiCheat: 0,
+    participantCount: 28,
+    createTime: '2026-11-02 15:40:00'
+  },
+  {
+    id: 8804,
+    examName: 'CET6 阅读与翻译综合',
+    examType: 'mock',
+    level: 'CET-6',
+    description: 'CET-6 长篇阅读 + 汉译英段落，时长 90 分钟。',
+    startTime: '2026-11-20 09:00:00',
+    endTime: '2026-11-21 23:59:59',
+    duration: 90,
+    questionCount: 14,
+    totalScore: 100,
+    passScore: 60,
+    publishStatus: 1,
+    enableAntiCheat: 1,
+    participantCount: 0,
+    createTime: '2026-11-11 11:00:00'
+  },
+  {
+    id: 8805,
+    examName: 'IELTS 学术类写作 Task 1',
+    examType: 'mock',
+    level: 'IELTS',
+    description: '图表描述，150 词以上，20 分钟。',
+    startTime: '2026-11-22 09:00:00',
+    endTime: '2026-11-23 23:59:59',
+    duration: 20,
+    questionCount: 1,
+    totalScore: 9,
+    passScore: 6,
+    publishStatus: 1,
+    enableAntiCheat: 0,
+    participantCount: 0,
+    createTime: '2026-11-11 11:10:00'
+  },
+  {
+    id: 8806,
+    examName: 'IELTS 学术类写作 Task 2',
+    examType: 'mock',
+    level: 'IELTS',
+    description: '议论文，250 词以上，40 分钟。',
+    startTime: '2026-11-25 09:00:00',
+    endTime: '2026-11-26 23:59:59',
+    duration: 40,
+    questionCount: 1,
+    totalScore: 9,
+    passScore: 6,
+    publishStatus: 1,
+    enableAntiCheat: 0,
+    participantCount: 0,
+    createTime: '2026-11-11 11:12:00'
+  },
+  {
+    id: 8807,
+    examName: 'CET4 听力专项（第 4 套）',
+    examType: 'practice',
+    level: 'CET-4',
+    description: '短篇新闻 + 长对话，训练预读与关键词捕捉。',
+    startTime: '2026-11-02 15:00:00',
+    endTime: '2026-11-02 15:40:00',
+    duration: 40,
+    questionCount: 14,
+    totalScore: 100,
+    passScore: 60,
+    publishStatus: 1,
+    enableAntiCheat: 0,
+    participantCount: 31,
+    createTime: '2026-10-30 16:00:00'
+  },
+  {
+    id: 8808,
+    examName: 'CET4 期末模拟卷（A 卷）',
+    examType: 'mock',
+    level: 'CET-4',
+    description: '期末统一模拟，考前一周开放。',
+    startTime: '2026-12-05 09:00:00',
+    endTime: '2026-12-06 23:59:59',
+    duration: 130,
+    questionCount: 14,
+    totalScore: 100,
+    passScore: 60,
+    publishStatus: 1,
+    enableAntiCheat: 1,
+    participantCount: 0,
+    createTime: '2026-11-12 17:30:00'
+  }
+]
+
+/* ---------------- 试卷题目（8801 可进入作答，其余同构） ---------------- */
+const READING_PASSAGE = `Online courses were once treated as an emergency substitute. Today they are a routine part of university study, and the argument has moved on from whether they work to when they work. Research suggests two conditions matter most. The first is structure: courses that divide the term into short units with weekly deadlines keep far more students engaged than those that simply upload recorded lectures. The second is interaction. Students who discuss material with peers, even briefly, are considerably more likely to complete the course. Neither condition requires expensive technology; both require a teacher willing to redesign the work students do between classes.`
+
+const QUESTION_SEEDS = [
+  {
+    questionType: 'READING', section: '阅读理解', score: 5,
+    title: '在线课程的有效条件',
+    content: 'According to the passage, what has changed about the debate on online courses?',
+    options: [
+      'Whether online courses are cheaper than traditional ones',
+      'Whether online courses work at all',
+      'When and under what conditions online courses work',
+      'Whether students prefer recorded lectures'
+    ],
+    answer: 'C',
+    analysis: '首段末句：the argument has moved on from whether they work to when they work。'
+  },
+  {
+    questionType: 'READING', section: '阅读理解', score: 5,
+    title: '在线课程的有效条件',
+    content: 'Which condition is mentioned as helping students stay engaged?',
+    options: [
+      'Short units with weekly deadlines',
+      'Long recorded lectures',
+      'Fewer assignments',
+      'Lower tuition fees'
+    ],
+    answer: 'A',
+    analysis: 'courses that divide the term into short units with weekly deadlines keep far more students engaged。'
+  },
+  {
+    questionType: 'READING', section: '阅读理解', score: 5,
+    title: '在线课程的有效条件',
+    content: 'What does the passage say about interaction?',
+    options: [
+      'It is less important than technology',
+      'Even brief peer discussion raises completion rates',
+      'It only works in face-to-face classes',
+      'It should be replaced by recorded videos'
+    ],
+    answer: 'B',
+    analysis: 'Students who discuss material with peers, even briefly, are considerably more likely to complete the course。'
+  },
+  {
+    questionType: 'READING', section: '阅读理解', score: 5,
+    title: '在线课程的有效条件',
+    content: 'The word "routine" in the first paragraph is closest in meaning to ______.',
+    options: ['occasional', 'regular', 'expensive', 'optional'],
+    answer: 'B',
+    analysis: 'routine 意为「例行的、常规的」，与 regular 最接近。'
+  },
+  {
+    questionType: 'READING', section: '阅读理解', score: 5,
+    title: '在线课程的有效条件',
+    content: 'What do the two conditions have in common?',
+    options: [
+      'Both depend on expensive platforms',
+      'Both require teachers to redesign students\' work',
+      'Both reduce the number of deadlines',
+      'Both replace classroom teaching entirely'
+    ],
+    answer: 'B',
+    analysis: 'Neither condition requires expensive technology; both require a teacher willing to redesign the work students do。'
+  },
+  {
+    questionType: 'SINGLE_CHOICE', section: '词汇与语法', score: 5,
+    title: '主谓一致',
+    content: 'The number of students taking online courses ______ increasing steadily.',
+    options: ['are', 'is', 'were', 'have been'],
+    answer: 'B',
+    analysis: '主语中心词是 the number（单数），谓语用 is。'
+  },
+  {
+    questionType: 'SINGLE_CHOICE', section: '词汇与语法', score: 5,
+    title: '虚拟语气',
+    content: 'If I ______ you, I would accept the offer without hesitation.',
+    options: ['am', 'was', 'were', 'be'],
+    answer: 'C',
+    analysis: '与现在事实相反的虚拟条件句，be 动词一律用 were。'
+  },
+  {
+    questionType: 'SINGLE_CHOICE', section: '词汇与语法', score: 5,
+    title: '非谓语动词',
+    content: '______ from the top of the tower, the campus looks like a garden.',
+    options: ['Seeing', 'Seen', 'To see', 'Having seen'],
+    answer: 'B',
+    analysis: 'campus 与 see 是被动关系，用过去分词作状语。'
+  },
+  {
+    questionType: 'SINGLE_CHOICE', section: '词汇与语法', score: 5,
+    title: '词义辨析',
+    content: 'The new policy will ______ students to choose courses more freely.',
+    options: ['enable', 'make', 'let', 'force'],
+    answer: 'A',
+    analysis: 'enable sb. to do sth. 为固定搭配；make/let 后不接 to。'
+  },
+  {
+    questionType: 'SINGLE_CHOICE', section: '词汇与语法', score: 5,
+    title: '定语从句',
+    content: 'This is the village ______ I spent my childhood.',
+    options: ['which', 'that', 'where', 'when'],
+    answer: 'C',
+    analysis: '先行词是地点，从句成分完整，缺地点状语，用 where。'
+  },
+  {
+    questionType: 'CLOZE', section: '完形填空', score: 5,
+    title: '完形填空（节选）',
+    passage: 'Many students believe that reading speed is a gift. In fact it is a skill, and like any skill it improves with __(1)__ practice. The most effective exercise is to read a short text twice: the first time for the main idea, the second time for details you __(2)__.',
+    content: '第 (1) 空应填入：',
+    options: ['deliberate', 'accidental', 'rare', 'sudden'],
+    answer: 'A',
+    analysis: 'deliberate practice（刻意练习）是固定搭配，也与「技能靠练」呼应。'
+  },
+  {
+    questionType: 'CLOZE', section: '完形填空', score: 5,
+    title: '完形填空（节选）',
+    passage: 'Many students believe that reading speed is a gift. In fact it is a skill, and like any skill it improves with __(1)__ practice. The most effective exercise is to read a short text twice: the first time for the main idea, the second time for details you __(2)__.',
+    content: '第 (2) 空应填入：',
+    options: ['missed', 'miss', 'will miss', 'missing'],
+    answer: 'A',
+    analysis: '第二遍读的是第一遍「漏掉」的细节，用过去分词 missed 作后置定语。'
+  },
+  {
+    questionType: 'TRANSLATION', section: '翻译', score: 15,
+    title: '汉译英',
+    content: '将下面这段话译成英文：随着在线课程的普及，学生可以更灵活地安排学习时间。然而，缺乏固定的作息往往导致拖延，因此学校有必要为学生提供明确的学习计划。',
+    options: null,
+    answer: 'As online courses become more common, students can arrange their study time more flexibly. However, the lack of a fixed routine often leads to procrastination, so it is necessary for schools to provide students with a clear study plan.',
+    analysis: '得分点：as 引导伴随变化、arrange time flexibly、lack of a fixed routine、lead to procrastination、it is necessary for sb. to do。'
+  },
+  {
+    questionType: 'WRITING', section: '写作', score: 25,
+    title: '短文写作',
+    content: 'Directions: Write an essay of about 120 words on the topic "The Benefits and Challenges of Online Learning". You should state your view clearly and support it with at least two reasons.',
+    options: null,
+    answer: '',
+    analysis: '评分维度：内容切题（观点明确、论据具体）、结构逻辑（三段、有连接词）、语言准确（主谓一致、冠词、时态）、词汇丰富（避免 more and more 一类高频套话）。'
+  }
+]
+
+// 阅读题共用同一篇文章（不逐题重复存正文）
+QUESTION_SEEDS.forEach(q => {
+  if (q.questionType === 'READING') {
+    q.passage = READING_PASSAGE
+    q.passageTitle = 'Online Learning: Conditions That Matter'
+  }
+})
+
+export function examQuestions(examId) {
+  return QUESTION_SEEDS.map((q, i) => ({
+    ...q,
+    id: Number(examId) * 100 + i + 1,
+    questionId: Number(examId) * 100 + i + 1,
+    examId: Number(examId),
+    difficulty: i < 5 ? 'MEDIUM' : 'EASY',
+    answer: undefined // 作答时不返回答案
+  }))
+}
+
+/* 考试记录（我的成绩） */
+export const EXAM_RECORDS = [
+  { id: 9001, examId: 8802, examName: 'CET4 词汇专项测试 Unit 3', level: 'CET-4', obtainedScore: 82, totalScore: 100, correctCount: 12, questionCount: 14, duration: 26, rank: 7, submitTime: '2026-11-08 14:26:00', status: 'FINISHED' },
+  { id: 9002, examId: 8803, examName: 'CET4 阅读理解强化（第 2 套）', level: 'CET-4', obtainedScore: 75, totalScore: 100, correctCount: 11, questionCount: 14, duration: 52, rank: 13, submitTime: '2026-11-05 09:52:00', status: 'FINISHED' },
+  { id: 9003, examId: 8807, examName: 'CET4 听力专项（第 4 套）', level: 'CET-4', obtainedScore: 88, totalScore: 100, correctCount: 13, questionCount: 14, duration: 38, rank: 3, submitTime: '2026-11-02 15:38:00', status: 'FINISHED' }
+]
+
+/* ---------------- 题库（教师端 /question/page） ---------------- */
+export const QUESTION_BANK = QUESTION_SEEDS.map((q, i) => ({
+  id: 6001 + i,
+  title: q.content.length > 46 ? q.content.slice(0, 46) + '…' : q.content,
+  content: q.content,
+  questionType: q.questionType,
+  section: q.section,
+  difficulty: ['EASY', 'MEDIUM', 'HARD'][i % 3],
+  knowledge: q.title,
+  options: q.options ? JSON.stringify(q.options) : null,
+  answer: q.answer,
+  analysis: q.analysis,
+  score: q.score,
+  usageCount: 12 + ((i * 7) % 40),
+  correctRate: 52 + ((i * 13) % 40),
+  createTime: `2026-11-${String(2 + (i % 10)).padStart(2, '0')} 10:00:00`
+}))
+
+export const QUESTION_CATEGORIES = [
+  { id: 1, categoryName: '听力理解', count: 0 },
+  { id: 2, categoryName: '阅读理解', count: 5 },
+  { id: 3, categoryName: '词汇与语法', count: 5 },
+  { id: 4, categoryName: '完形填空', count: 2 },
+  { id: 5, categoryName: '翻译', count: 1 },
+  { id: 6, categoryName: '写作', count: 1 }
+]
+
+/* ---------------- 学习资源（学习中心 / 教师资源管理） ---------------- */
+// 内联 SVG 渐变封面：不依赖任何图片文件，离线/静态部署都能显示
+const makeCover = (c1, c2) =>
+  `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs><rect width="320" height="180" fill="url(#g)"/><circle cx="256" cy="36" r="62" fill="#ffffff" opacity="0.14"/><circle cx="52" cy="152" r="74" fill="#ffffff" opacity="0.09"/></svg>`
+  )}`
+
+export const RESOURCES = [
+  { id: 3001, resourceName: 'CET4 高频词汇 800（按词频排序）', description: '按近五年真题词频整理，配例句与常见搭配。', resourceType: 'DOCUMENT', level: 'CET-4', coverUrl: makeCover('#2563eb', '#0ea5e9'), viewCount: 1284, downloadCount: 421, duration: '', updateTime: '2026-11-10 09:00:00' },
+  { id: 3002, resourceName: '写作模板升级手册：从套话到具体', description: '12 组高频套话的替换方案，附改写前后对照。', resourceType: 'DOCUMENT', level: 'CET-4', coverUrl: makeCover('#7c3aed', '#4f46e5'), viewCount: 966, downloadCount: 358, duration: '', updateTime: '2026-11-09 14:20:00' },
+  { id: 3003, resourceName: '长难句拆解 20 讲（视频）', description: '每讲 8 分钟，讲清主干提取与从句识别。', resourceType: 'VIDEO', level: 'CET-4', coverUrl: makeCover('#0f766e', '#14b8a6'), viewCount: 742, downloadCount: 0, duration: '02:40:00', updateTime: '2026-11-08 10:30:00' },
+  { id: 3004, resourceName: '阅读理解同义替换词表', description: '按题干与原文的对应关系分组，训练定位速度。', resourceType: 'DOCUMENT', level: 'CET-4', coverUrl: makeCover('#1d4ed8', '#3b82f6'), viewCount: 611, downloadCount: 233, duration: '', updateTime: '2026-11-07 16:00:00' },
+  { id: 3005, resourceName: 'IELTS Writing Task 2 论证结构', description: '四段式与让步段写法，含 6.5 与 7.0 分范文对比。', resourceType: 'DOCUMENT', level: 'IELTS', coverUrl: makeCover('#b45309', '#f59e0b'), viewCount: 388, downloadCount: 96, duration: '', updateTime: '2026-11-06 11:15:00' },
+  { id: 3006, resourceName: 'CET6 翻译常见中式表达纠错', description: '40 条典型中式翻译及地道改法。', resourceType: 'DOCUMENT', level: 'CET-6', coverUrl: makeCover('#be123c', '#fb7185'), viewCount: 274, downloadCount: 81, duration: '', updateTime: '2026-11-04 09:40:00' }
+]
+
+/* ---------------- 分页助手 ---------------- */
+function paginate(list, params = {}) {
+  const current = Number(params.pageNum || params.current || 1)
+  const size = Number(params.pageSize || params.size || 10)
+  const start = (current - 1) * size
+  return { records: list.slice(start, start + size), total: list.length, current, size }
+}
+
+export function examPage(params = {}) {
+  let list = [...EXAMS]
+  if (params.level) {
+    const lv = String(params.level).replace('-', '')
+    list = list.filter(e => String(e.level).replace('-', '') === lv)
+  }
+  if (params.keyword) list = list.filter(e => e.examName.includes(params.keyword))
+  return paginate(list, params)
+}
+
+export function examDetail(id) {
+  const exam = EXAMS.find(e => e.id === Number(id))
+  if (!exam) return null
+  // 与后端返回结构保持一致：{ exam, questionCount, questionTypes }
+  return {
+    exam,
+    questionCount: exam.questionCount,
+    questionTypes: [
+      { name: '阅读理解', type: 'READING', count: 5 },
+      { name: '词汇与语法', type: 'SINGLE_CHOICE', count: 5 },
+      { name: '完形填空', type: 'CLOZE', count: 2 },
+      { name: '翻译', type: 'TRANSLATION', count: 1 },
+      { name: '写作', type: 'WRITING', count: 1 }
+    ]
+  }
+}
+
+/* 作答运行时：记录本次开考与交卷结果，供成绩页/回顾页读取 */
+let runtimeAttempt = null
+
+export function examStart(examId) {
+  const exam = EXAMS.find(e => e.id === Number(examId))
+  runtimeAttempt = {
+    recordId: 9101,
+    examId: Number(examId),
+    startedAt: Date.now(),
+    submitted: false,
+    answers: [],
+    result: null
+  }
+  return {
+    recordId: runtimeAttempt.recordId,
+    examId: Number(examId),
+    remainingSeconds: (exam?.duration || 130) * 60,
+    startTime: new Date().toISOString().slice(0, 19).replace('T', ' ')
+  }
+}
+
+const wordLen = s => String(s || '').trim().split(/\s+/).filter(Boolean).length
+
+export function examSubmit({ examId, recordId, answers = [] } = {}) {
+  const eid = Number(examId)
+  let score = 0
+  let correct = 0
+  let objective = 0
+
+  for (const a of answers) {
+    const idx = Number(a.questionId) - eid * 100 - 1
+    const q = QUESTION_SEEDS[idx]
+    if (!q) continue
+    const raw = String(a.answer ?? '').trim()
+    if (q.questionType === 'READING' || q.questionType === 'SINGLE_CHOICE' || q.questionType === 'CLOZE') {
+      objective += 1
+      // 前端提交的是选项下标（0/1/2/3），统一转成字母再比对
+      const letter = /^\d+$/.test(raw) ? String.fromCharCode(65 + Number(raw)) : raw.toUpperCase()
+      if (letter && letter === String(q.answer).toUpperCase()) {
+        score += q.score
+        correct += 1
+      }
+    } else if (q.questionType === 'TRANSLATION') {
+      const n = wordLen(raw)
+      score += n >= 28 ? q.score : Math.round(q.score * Math.min(1, n / 28))
+    } else if (q.questionType === 'WRITING') {
+      const n = wordLen(raw)
+      score += n >= 110 ? q.score : Math.round(q.score * Math.min(1, n / 110))
+    }
+  }
+
+  const exam = EXAMS.find(e => e.id === eid)
+  const totalScore = exam?.totalScore || 100
+  const wrong = Math.max(0, objective - correct)
+  const accuracy = objective ? Math.round((correct / objective) * 100) : 0
+  const result = {
+    id: Number(recordId) || 9101,
+    recordId: Number(recordId) || 9101,
+    examId: eid,
+    examName: exam?.examName || '考试',
+    level: exam?.level || 'CET-4',
+    obtainedScore: Math.min(totalScore, score),
+    score: Math.min(totalScore, score),
+    totalScore,
+    passScore: exam?.passScore || 60,
+    correctCount: correct,
+    wrongCount: wrong,
+    questionCount: QUESTION_SEEDS.length,
+    duration: Math.max(1, Math.round((Date.now() - (runtimeAttempt?.startedAt || Date.now())) / 60000)),
+    rank: 6,
+    percentile: 82,
+    submitTime: new Date().toISOString().slice(0, 19).replace('T', ' '),
+    status: 'FINISHED'
+  }
+  if (runtimeAttempt) {
+    runtimeAttempt.submitted = true
+    runtimeAttempt.answers = answers
+    runtimeAttempt.result = result
+  }
+  return result
+}
+
+export function examRecordDetail(recordId) {
+  if (runtimeAttempt && runtimeAttempt.result && Number(recordId) === runtimeAttempt.recordId) {
+    return runtimeAttempt.result
+  }
+  return EXAM_RECORDS.find(r => r.id === Number(recordId)) || {
+    id: Number(recordId),
+    examId: 0,
+    examName: '考试记录',
+    obtainedScore: 0,
+    totalScore: 100,
+    passScore: 60,
+    correctCount: 0,
+    wrongCount: 0,
+    duration: 0,
+    rank: 0,
+    percentile: 0,
+    status: 'FINISHED'
+  }
+}
+
+
+export function examRecordPage(params = {}) {
+  return paginate([...EXAM_RECORDS], params)
+}
+
+export function questionPage(params = {}) {
+  let list = [...QUESTION_BANK]
+  if (params.keyword) list = list.filter(q => q.title.includes(params.keyword) || q.content.includes(params.keyword))
+  if (params.questionType) list = list.filter(q => q.questionType === params.questionType)
+  return paginate(list, params)
+}
+
+export function resourcePage(params = {}) {
+  let list = [...RESOURCES]
+  if (params.level) {
+    const lv = String(params.level).replace('-', '').toUpperCase()
+    list = list.filter(r => String(r.level).replace('-', '').toUpperCase() === lv)
+  }
+  if (params.resourceType) list = list.filter(r => r.resourceType === String(params.resourceType).toUpperCase())
+  if (params.keyword) list = list.filter(r => r.resourceName.includes(params.keyword))
+  return paginate(list, params)
+}

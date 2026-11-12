@@ -1,0 +1,55 @@
+# ---------- 依赖与构建产物 ----------
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+
+# ---------- Java / Maven ----------
+target/
+*.class
+*.jar
+*.war
+.mvn/wrapper/maven-wrapper.jar
+
+# ---------- 日志与临时文件 ----------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+temp_*.json
+temp_*.txt
+*.tmp
+
+# ---------- 编辑器 / 系统 ----------
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# ---------- 本地环境变量 ----------
+.env.local
+.env.*.local
+
+# ---------- 版权受限 / 体积过大的资料（仅保留在本地） ----------
+app/docs/2025年12月CET4/
+
+# ---------- 反编译与临时修复产物 ----------
+app/backend/src-recover/
+app/backend/uploads/
+app/backend/cfr.jar
+app/backend/decompile-all.bat
+app/backend/decompile.ps1
+app/backend/clean_headers.py
+app/backend/fix_casts*.py
+app/backend/restore_lombok.py
+app/backend/compile_errors.txt
+app/backend/compile_out.txt
+
+# ---------- 启动器调试产物 ----------
+_probe*.bat
+_p*.log
+_t.log
