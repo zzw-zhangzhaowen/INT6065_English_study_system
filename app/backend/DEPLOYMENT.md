@@ -1,155 +1,124 @@
-# 英语等级智能学习与考试系统 - 部署与测试指南
+# 部署指南
 
 ## 一、环境要求
 
 | 组件 | 版本要求 | 说明 |
 |------|----------|------|
-| JDK | 17+ | 推荐Eclipse Temurin |
-| MySQL | 8.0+ | 数据库 |
+| JDK | 17+ | 推荐 Eclipse Temurin |
+| MySQL | 8.0+ | 业务数据库 |
 | Redis | 7.0+ | 缓存服务 |
 | Node.js | 18+ | 前端构建 |
 | Maven | 3.6+ | 后端构建 |
 
-## 二、快速部署
+## 二、部署方式
 
-### 2.1 一键部署（推荐）
+本项目有两种部署形态，按需选择：
+
+| 方式 | 适用场景 | 是否需要数据库 |
+|------|----------|----------------|
+| 纯演示模式 | 答辩演示、静态托管、离线预览 | 否 |
+| 全量前后端 | 完整功能验证 | 是 |
+
+### 2.1 纯演示模式（推荐用于演示）
+
+前端内置了完整的模拟数据，不请求任何后端接口。
 
 ```bash
-# 1. 运行安装指南查看依赖
-install-guide.bat
-
-# 2. 初始化数据库
-init-db.bat
-
-# 3. 一键编译部署
-deploy.bat
-
-# 4. 启动后端服务
-start.bat
-```
-
-### 2.2 手动部署
-
-#### 后端部署
-```bash
-cd backend
-
-# 编译
-mvn clean package -DskipTests
-
-# 启动
-java -jar target/english-learning-system-1.0.0.jar
-```
-
-#### 前端部署
-```bash
-cd frontend
-
-# 安装依赖
+cd app/frontend
 npm install
-
-# 开发模式
-npm run dev
-
-# 生产构建
-npm run build
+npm run build:pages
 ```
 
-## 三、部署脚本说明
+产物在 `app/frontend/dist`，可直接托管到任意静态服务器，也可双击其中的 `index.html` 本地打开。
 
-| 脚本 | 功能 |
-|------|------|
-| `start.bat` | 启动后端服务 |
-| `stop.bat` | 停止后端服务 |
-| `init-db.bat` | 初始化数据库 |
-| `deploy.bat` | 一键编译部署 |
-| `install-guide.bat` | 查看安装指南 |
-| `run-tests.bat` | 运行测试 |
+项目已配置 GitHub Actions（`.github/workflows/deploy.yml`），推送到 `main` 分支后自动构建并发布到 GitHub Pages。
 
-## 四、测试说明
+### 2.2 全量前后端
 
-### 4.1 测试结构
-
-```
-src/test/java/com/english/learning/
-├── controller/           # Controller层单元测试
-│   ├── AuthControllerTest.java
-│   ├── QuestionControllerTest.java
-│   ├── ExamControllerTest.java
-│   ├── AIControllerTest.java
-│   ├── ClassroomControllerTest.java
-│   └── CommunityControllerTest.java
-├── service/              # Service层单元测试
-│   ├── AuthServiceTest.java
-│   ├── QuestionServiceTest.java
-│   ├── ExamServiceTest.java
-│   ├── AIServiceTest.java
-│   ├── LearningResourceServiceTest.java
-│   ├── CommunityServiceTest.java
-│   └── ClassroomServiceTest.java
-└── integration/          # 集成测试
-    ├── AuthIntegrationTest.java
-    ├── ExamIntegrationTest.java
-    ├── LearningCenterIntegrationTest.java
-    ├── AIIntegrationTest.java
-    ├── CommunityIntegrationTest.java
-    └── ClassroomIntegrationTest.java
-```
-
-### 4.2 运行测试
+#### 数据库初始化
 
 ```bash
-# 运行所有测试
-mvn test
-
-# 运行单元测试
-mvn test -Dtest=*ServiceTest,*ControllerTest
-
-# 运行集成测试
-mvn test -Dtest=*IntegrationTest -Dspring.profiles.active=test
-
-# 生成测试报告
-mvn surefire-report:report
-
-# 或使用脚本
-run-tests.bat
+mysql -u root -p
+source app/backend/src/main/resources/sql/schema.sql
+source app/backend/src/main/resources/sql/init-data.sql
 ```
 
-### 4.3 测试覆盖模块
+编辑 `app/backend/src/main/resources/application.yml` 填写 MySQL 与 Redis 连接信息。
 
-| 模块 | 单元测试 | 集成测试 |
-|------|----------|----------|
-| 用户认证 | ✅ | ✅ |
-| 题库管理 | ✅ | ✅ |
-| 在线考试 | ✅ | ✅ |
-| 学习中心 | ✅ | ✅ |
-| AI功能 | ✅ | ✅ |
-| 社区功能 | ✅ | ✅ |
-| 在线课堂 | ✅ | ✅ |
+#### 启动后端
+
+在项目根目录执行：
+
+```bat
+start-all.bat full
+```
+
+或手动启动：
+
+```bash
+cd app/backend
+mvn clean package -DskipTests
+java -jar english-learning-system-1.0.0.jar
+```
+
+也可以直接双击 `app/backend/start.bat`，脚本会自动检查 Java、MySQL、Redis 环境并启动 jar。
+
+#### 启动前端
+
+```bash
+cd app/frontend
+npm run dev
+```
+
+## 三、启动脚本说明
+
+项目根目录的 `start-all.bat` 是唯一入口：
+
+| 命令 | 功能 |
+|------|------|
+| `start-all.bat` | 纯演示模式启动（默认） |
+| `start-all.bat full` | 前端 + 后端一起启动 |
+| `start-all.bat build` | 打包静态站点到 `app/frontend/dist` |
+| `start-all.bat stop` | 停止占用 3002 / 8080 的进程 |
+| `start-all.bat status` | 查看端口占用情况 |
+
+## 四、测试
+
+```bash
+cd app/backend
+mvn test                    # 运行全部测试
+mvn test -Dtest=*ServiceTest # 只跑 Service 层
+mvn surefire-report:report  # 生成测试报告
+```
 
 ## 五、默认账号
 
-| 角色 | 用户名 | 密码 |
-|------|--------|------|
-| 管理员 | admin | admin123 |
+演示模式下密码不做校验（不少于 6 位即可），用户名决定角色：
+
+| 角色 | 用户名 |
+|------|--------|
+| 管理员 | admin |
+| 教师 | teacher |
+| 学生 | student 或任意普通名字 |
+
+连接真实后端时使用数据库初始化的账号。
 
 ## 六、访问地址
 
-- 前端页面: http://localhost:5173 (开发模式)
-- 后端API: http://localhost:8080
-- API文档: http://localhost:8080/swagger-ui.html
-- H2控制台(测试): http://localhost:8080/h2-console
+- 前端页面：http://localhost:3002
+- 后端 API：http://localhost:8080
+- API 文档：http://localhost:8080/swagger-ui.html
 
 ## 七、常见问题
 
 ### Q1: 启动失败提示数据库连接错误
-确保MySQL服务已启动，并检查`application.yml`中的数据库配置。
+确保 MySQL 服务已启动，并检查 `application.yml` 中的数据库配置。
 
-### Q2: Redis连接失败
-确保Redis服务已启动，或在配置中禁用Redis缓存。
+### Q2: Redis 连接失败
+确保 Redis 服务已启动，或在配置中禁用 Redis 缓存。
 
-### Q3: 前端无法访问后端API
-检查后端CORS配置，确保允许前端域名访问。
+### Q3: 前端无法访问后端 API
+检查后端 CORS 配置，以及 `vite.config.js` 中的 `/api` 代理目标。
 
-### Q4: 测试运行失败
-确保测试环境配置正确，H2数据库依赖已添加。
+### Q4: `full` 模式页面数据为空
+后端未成功启动，最常见原因是 MySQL 或 Redis 未运行。查看「后端服务」窗口报错，或改用 `start-all.bat demo`。

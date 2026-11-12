@@ -26,7 +26,7 @@ echo   英语等级智能学习与考试系统 - 启动器
 echo ============================================================
 echo   start-all.bat           一键启动（纯演示模式，推荐）
 echo   start-all.bat demo      同上，纯演示模式
-echo   start-all.bat full      前端 + 后端一起启动
+echo   start-all.bat full      前端 + 后端一起启动（需 MySQL / Redis）
 echo   start-all.bat build     打包静态站点（输出到 app\frontend\dist）
 echo   start-all.bat stop      停止所有服务
 echo   start-all.bat status    查看端口占用
@@ -72,25 +72,47 @@ echo ============================================================
 echo   英语等级智能学习与考试系统 - 全量模式
 echo ============================================================
 echo.
+echo 说明：此模式使用真实后端接口，需要 MySQL 与 Redis 已启动。
+echo       若只想看功能演示，建议直接运行 start-all.bat demo
+echo.
 if not exist "%FE_DIR%\package.json" goto err_no_fe
 call :check_node
 if errorlevel 1 goto end
+set "BE_STARTED="
 call :check_port %FE_PORT%
 if defined BUSY_PID goto full_be
-echo [1/3] 启动前端服务（端口 %FE_PORT%）...
+echo [1/4] 启动前端服务（端口 %FE_PORT%）...
 start "前端服务" /d "%FE_DIR%" cmd /k "npm run dev"
 :full_be
 if exist "%BE_DIR%\start.bat" goto full_be_spawn
-echo [2/3] 未找到后端启动脚本，跳过
-goto full_wait
+echo [2/4] 未找到后端启动脚本，跳过
+goto full_wait_fe
 :full_be_spawn
-echo [2/3] 启动后端服务（端口 %BE_PORT%）...
+call :check_port %BE_PORT%
+if defined BUSY_PID goto full_wait_fe
+echo [2/4] 启动后端服务（端口 %BE_PORT%）...
 start "后端服务" /d "%BE_DIR%" cmd /k "call start.bat"
-:full_wait
-echo [3/3] 等待前端就绪...
+set "BE_STARTED=1"
+:full_wait_fe
+echo [3/4] 等待前端就绪...
 call :wait_port %FE_PORT% 40
 if not defined READY goto full_timeout
-echo       已就绪，正在打开浏览器...
+echo       前端已就绪
+if not defined BE_STARTED goto full_open
+echo [4/4] 等待后端就绪（Spring Boot 首次启动约需 20-40 秒）...
+call :wait_port %BE_PORT% 60
+if not defined READY goto full_be_fail
+echo       后端已就绪
+goto full_open
+:full_be_fail
+echo.
+echo   [警告] 后端未能启动，最常见的原因是 MySQL 或 Redis 没有运行。
+echo          此时页面可能显示不全或停留在加载状态，建议改用纯演示模式：
+echo              start-all.bat demo
+echo          后端具体报错请查看「后端服务」窗口。
+echo.
+:full_open
+echo       正在打开浏览器...
 start "" "%SITE%"
 goto full_banner
 :full_timeout
@@ -120,7 +142,6 @@ echo   可把 dist 目录整个上传，或直接双击其中的 index.html 预览
 goto end
 :err_build
 echo   [错误] 打包失败，请查看上方 npm 输出
-
 goto end
 
 :do_stop

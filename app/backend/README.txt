@@ -10,13 +10,14 @@
 【快速启动】
 
 1. 创建数据库
-   - 使用 MySQL 客户端执行 sql/community_tables.sql 文件
+   - 依次执行 sql/schema.sql、sql/init-data.sql
+   - 如需社区相关表，再执行 sql/community_tables.sql
    - 默认数据库名: english_learning
    - 默认用户名: root，密码: 123456
 
 2. 修改数据库配置（如需要）
-   - 编辑 start.bat 中的数据库连接信息
-   - 或修改 application.yml 后重新打包
+   - 编辑 src/main/resources/application.yml 中的数据库连接信息
+   - 修改后需重新打包，或用外部配置文件覆盖
 
 3. 启动服务
    - 双击运行 start.bat
@@ -35,4 +36,4 @@
 【注意事项】
 - 确保MySQL服务已启动
 - 确保数据库 english_learning 已创建
-- 默认端口8080，如被占用可修改 start.bat 中的 --server.port 参数
+- 默认端口8080，如被占用可修改 application.yml 中的 server.port

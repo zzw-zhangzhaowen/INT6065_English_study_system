@@ -1,70 +1,67 @@
 @echo off
-chcp 65001 >nul
-title è‹±è¯­ç­‰çº§æ™ºèƒ½å­¦ä¹ ä¸è€ƒè¯•ç³»ç»Ÿ - å¯åŠ¨
+chcp 936 >nul
+setlocal enabledelayedexpansion
+title English Study System - Backend
 
-echo ========================================
-echo   è‹±è¯­ç­‰çº§æ™ºèƒ½å­¦ä¹ ä¸è€ƒè¯•ç³»ç»Ÿ - å¯åŠ¨è„šæœ¬
-echo ========================================
+cd /d "%~dp0"
+set "JAR_FILE=english-learning-system-1.0.0.jar"
+set "BE_PORT=8080"
+
+echo ============================================================
+echo   Ó¢ÓïµÈ¼¶ÖÇÄÜÑ§Ï°Óë¿¼ÊÔÏµÍ³ - ºó¶Ë·şÎñ
+echo ============================================================
 echo.
 
-:: æ£€æŸ¥Javaç¯å¢ƒ
-echo [1/5] æ£€æŸ¥Javaç¯å¢ƒ...
-java -version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo [é”™è¯¯] æœªæ£€æµ‹åˆ°Javaç¯å¢ƒï¼Œè¯·å®‰è£…JDK 17+
-    pause
-    exit /b 1
-)
-echo [âˆš] Javaç¯å¢ƒæ­£å¸¸
+echo [1/5] ¼ì²é Java »·¾³...
+where java >nul 2>&1
+if errorlevel 1 goto err_no_java
+echo       Java »·¾³Õı³£
 
-:: æ£€æŸ¥MySQLæœåŠ¡
-echo [2/5] æ£€æŸ¥MySQLæœåŠ¡...
+echo [2/5] ¼ì²é MySQL ·şÎñ...
 sc query MySQL >nul 2>&1
-if %errorlevel% neq 0 (
-    sc query MySQL80 >nul 2>&1
-    if %errorlevel% neq 0 (
-        echo [è­¦å‘Š] MySQLæœåŠ¡æœªæ£€æµ‹åˆ°ï¼Œè¯·ç¡®ä¿MySQLå·²å¯åŠ¨
-    ) else (
-        echo [âˆš] MySQL80æœåŠ¡å·²å®‰è£…
-    )
-) else (
-    echo [âˆš] MySQLæœåŠ¡å·²å®‰è£…
-)
-
-:: æ£€æŸ¥RedisæœåŠ¡
-echo [3/5] æ£€æŸ¥RedisæœåŠ¡...
+if not errorlevel 1 goto mysql_ok
+sc query MySQL80 >nul 2>&1
+if not errorlevel 1 goto mysql_ok
+echo       [¾¯¸æ] Î´¼ì²âµ½ MySQL ·şÎñ£¬ÇëÈ·ÈÏÊı¾İ¿âÒÑÆô¶¯
+goto check_redis
+:mysql_ok
+echo       ÒÑ¼ì²âµ½ MySQL ·şÎñ
+:check_redis
+echo [3/5] ¼ì²é Redis ·şÎñ...
 sc query Redis >nul 2>&1
-if %errorlevel% neq 0 (
-    echo [è­¦å‘Š] RedisæœåŠ¡æœªæ£€æµ‹åˆ°ï¼Œè¯·ç¡®ä¿Rediså·²å¯åŠ¨
-) else (
-    echo [âˆš] RedisæœåŠ¡å·²å®‰è£…
-)
+if not errorlevel 1 goto redis_ok
+echo       [¾¯¸æ] Î´¼ì²âµ½ Redis ·şÎñ£¬ÇëÈ·ÈÏ»º´æ·şÎñÒÑÆô¶¯
+goto check_jar
+:redis_ok
+echo       ÒÑ¼ì²âµ½ Redis ·şÎñ
+:check_jar
+echo [4/5] ¼ì²éÓ¦ÓÃ³ÌĞò...
+if exist "%JAR_FILE%" goto jar_ok
+echo       JAR ²»´æÔÚ£¬¿ªÊ¼±àÒë£¨Ê×´Î½ÏÂı£¬ÇëÄÍĞÄµÈ´ı£©...
+call mvn clean package -DskipTests
+if errorlevel 1 goto err_build
+:jar_ok
+echo       Ó¦ÓÃ³ÌĞò¾ÍĞ÷
 
-:: æ£€æŸ¥JARæ–‡ä»¶
-echo [4/5] æ£€æŸ¥åº”ç”¨ç¨‹åº...
-set JAR_FILE=english-learning-system-1.0.0.jar
-if not exist %JAR_FILE% (
-    echo [æç¤º] JARæ–‡ä»¶ä¸å­˜åœ¨ï¼Œå¼€å§‹ç¼–è¯‘...
-    call mvn clean package -DskipTests
-    if %errorlevel% neq 0 (
-        echo [é”™è¯¯] ç¼–è¯‘å¤±è´¥ï¼Œè¯·æ£€æŸ¥ä»£ç 
-        pause
-        exit /b 1
-    )
-)
-echo [âˆš] åº”ç”¨ç¨‹åºå°±ç»ª
-
-:: å¯åŠ¨åº”ç”¨
-echo [5/5] å¯åŠ¨åº”ç”¨ç¨‹åº...
+echo [5/5] Æô¶¯Ó¦ÓÃ³ÌĞò...
 echo.
-echo ========================================
-echo   ç³»ç»Ÿå¯åŠ¨ä¸­ï¼Œè¯·ç¨å€™...
-echo   è®¿é—®åœ°å€: http://localhost:8080
-echo   APIæ–‡æ¡£: http://localhost:8080/swagger-ui.html
-echo   æŒ‰ Ctrl+C åœæ­¢æœåŠ¡
-echo ========================================
+echo ============================================================
+echo   ·ÃÎÊµØÖ·£ºhttp://localhost:%BE_PORT%
+echo   API ÎÄµµ£ºhttp://localhost:%BE_PORT%/swagger-ui.html
+echo   °´ Ctrl+C Í£Ö¹·şÎñ
+echo ============================================================
 echo.
+java -jar -Dfile.encoding=UTF-8 -Xms512m -Xmx1024m "%JAR_FILE%"
+goto end
 
-java -jar -Dfile.encoding=UTF-8 -Xms512m -Xmx1024m %JAR_FILE%
+:err_no_java
+echo [´íÎó] Î´¼ì²âµ½ Java£¬ÇëÏÈ°²×° JDK 17 ¼°ÒÔÉÏ°æ±¾
+goto end
+:err_build
+echo [´íÎó] ±àÒëÊ§°Ü£¬Çë¼ì²é´úÂë»ò Maven »·¾³
+goto end
 
+:end
+echo.
+echo ºó¶Ë·şÎñÒÑÍË³ö¡£
 pause
