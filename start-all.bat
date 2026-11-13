@@ -236,6 +236,7 @@ call :try_dir "%ProgramFiles%\nodejs"
 call :try_dir "%USERPROFILE%\.workbuddy\binaries\node\versions"
 call :try_dir "%APPDATA%\nvm"
 call :try_dir "%LOCALAPPDATA%\nvm"
+call :try_dir "%LOCALAPPDATA%\Microsoft\WinGet\Packages"
 exit /b 0
 
 :try_dir
@@ -252,9 +253,21 @@ for /d %%v in ("%~1" "%~1\*") do (
     set "PATH=!OLD_PATH!"
   )
 )
+for /d %%v in ("%~1\*") do (
+  for /d %%w in ("%%v\*") do (
+    if exist "%%w\node.exe" (
+      set "PATH=%%w;!PATH!"
+      call :node_ok_version
+      if not errorlevel 1 (
+        set "NODE_DIR=%%w"
+        exit /b 0
+      )
+      set "PATH=!OLD_PATH!"
+    )
+  )
+)
 set "PATH=!OLD_PATH!"
 exit /b 0
-
 :node_ok_version
 where node >nul 2>&1
 if errorlevel 1 exit /b 1
