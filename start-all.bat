@@ -7,6 +7,7 @@ cd /d "%~dp0"
 set "APP_DIR=%~dp0app"
 set "FE_DIR=%APP_DIR%\frontend"
 set "BE_DIR=%APP_DIR%\backend"
+set "TOOLS_DIR=%APP_DIR%\tools"
 set "FE_PORT=3002"
 set "BE_PORT=8080"
 set "SITE=http://localhost:%FE_PORT%"
@@ -43,7 +44,7 @@ echo.
 echo 正在以「纯演示模式」启动前端（不请求后端，数据走内置模拟数据）
 if not exist "%FE_DIR%\package.json" goto err_no_fe
 call :check_node
-if errorlevel 1 goto end
+if errorlevel 1 goto demo_offline
 call :check_port %FE_PORT%
 if not defined BUSY_PID goto demo_spawn
 echo [提示] 端口 %FE_PORT% 已在运行，直接打开浏览器
@@ -67,6 +68,31 @@ echo   [警告] 等待超时，请查看「前端服务-演示模式」窗口里的报错信息
 echo   前端地址：%SITE%
 goto end
 
+:demo_offline
+call :check_port %FE_PORT%
+if defined BUSY_PID goto demo_open_busy
+if not exist "%FE_DIR%\dist\index.html" goto err_no_node
+if not exist "%TOOLS_DIR%\serve-dist.ps1" goto err_no_node
+echo [提示] 未检测到可用的 Node.js，改用内置 PowerShell 静态服务器运行已构建页面
+start "静态服务器-演示模式" /min "%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File "%TOOLS_DIR%\serve-dist.ps1" -Port %FE_PORT% -Root "%FE_DIR%\dist"
+echo 正在等待静态服务器就绪...
+call :wait_port %FE_PORT% 30
+if not defined READY goto demo_offline_fail
+echo.
+echo   已就绪，正在打开浏览器...
+start "" "%SITE%"
+echo   前端地址：%SITE%
+echo   停止服务：start-all.bat stop
+echo ============================================================
+goto end
+:demo_open_busy
+echo [提示] 端口 %FE_PORT% 已被占用，直接打开该地址
+start "" "http://localhost:%FE_PORT%"
+goto end
+:demo_offline_fail
+echo [错误] 静态服务器启动失败，可直接访问线上地址
+start "" "https://zzw-zhangzhaowen.github.io/INT6065_English_study_system/"
+goto end
 :do_full
 echo ============================================================
 echo   英语等级智能学习与考试系统 - 全量模式
@@ -77,7 +103,7 @@ echo       若只想看功能演示，建议直接运行 start-all.bat demo
 echo.
 if not exist "%FE_DIR%\package.json" goto err_no_fe
 call :check_node
-if errorlevel 1 goto end
+if errorlevel 1 goto err_no_node
 set "BE_STARTED="
 call :check_port %FE_PORT%
 if defined BUSY_PID goto full_be
@@ -129,7 +155,7 @@ goto end
 echo 正在打包静态站点（用于 GitHub Pages / 本地直接打开）...
 if not exist "%FE_DIR%\package.json" goto err_no_fe
 call :check_node
-if errorlevel 1 goto end
+if errorlevel 1 goto err_no_node
 pushd "%FE_DIR%"
 if not exist "node_modules" call npm install
 call npm run build:pages
@@ -178,21 +204,70 @@ echo [错误] 未找到前端目录：%FE_DIR%
 goto end
 
 :check_node
-where node >nul 2>&1
-if errorlevel 1 goto err_no_node
+call :node_ok_version
+if not errorlevel 1 goto node_chk_deps
+call :detect_node
+if not defined NODE_DIR exit /b 1
+set "PATH=!NODE_DIR!;!PATH!"
+call :node_ok_version
+if errorlevel 1 exit /b 1
+echo [提示] 已自动定位内置 Node.js: !NODE_DIR!
+:node_chk_deps
 if exist "%FE_DIR%\node_modules" goto node_ok
-echo [提示] 首次运行，正在安装前端依赖（可能需要几分钟）...
+echo [提示] 首次运行，正在安装前端依赖（需要几分钟）...
 pushd "%FE_DIR%"
 call npm install
 popd
 if errorlevel 1 goto err_install
 :node_ok
 exit /b 0
-:err_no_node
-echo [错误] 未检测到 Node.js，请先安装 Node.js 18 及以上版本
-exit /b 1
 :err_install
 echo [错误] 前端依赖安装失败
+exit /b 1
+:err_no_node
+echo [错误] 未检测到 Node.js 18 及以上版本，请先安装 Node.js
+echo        下载地址: https://nodejs.org/zh-cn/download
+echo        或在终端执行: winget install OpenJS.NodeJS.LTS
+goto end
+:detect_node
+set "NODE_DIR="
+call :try_dir "%LOCALAPPDATA%\Programs\nodejs"
+call :try_dir "%ProgramFiles%\nodejs"
+call :try_dir "%USERPROFILE%\.workbuddy\binaries\node\versions"
+call :try_dir "%APPDATA%\nvm"
+call :try_dir "%LOCALAPPDATA%\nvm"
+exit /b 0
+
+:try_dir
+if not exist "%~1" exit /b 0
+set "OLD_PATH=!PATH!"
+for /d %%v in ("%~1" "%~1\*") do (
+  if exist "%%v\node.exe" (
+    set "PATH=%%v;!PATH!"
+    call :node_ok_version
+    if not errorlevel 1 (
+      set "NODE_DIR=%%v"
+      exit /b 0
+    )
+    set "PATH=!OLD_PATH!"
+  )
+)
+set "PATH=!OLD_PATH!"
+exit /b 0
+
+:node_ok_version
+where node >nul 2>&1
+if errorlevel 1 exit /b 1
+set "NODE_VER="
+for /f "delims=" %%v in ('node -v 2^>nul') do set "NODE_VER=%%v"
+if not defined NODE_VER exit /b 1
+set "NODE_VER=!NODE_VER:v=!"
+set "NODE_MAJOR="
+for /f "tokens=1 delims=." %%m in ("!NODE_VER!") do set "NODE_MAJOR=%%m"
+if not defined NODE_MAJOR exit /b 1
+echo !NODE_MAJOR!| findstr /r "^[0-9][0-9]*$" >nul 2>&1
+if errorlevel 1 exit /b 1
+if !NODE_MAJOR! GEQ 18 exit /b 0
 exit /b 1
 
 :check_port
