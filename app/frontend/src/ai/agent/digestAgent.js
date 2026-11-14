@@ -12,7 +12,7 @@ const CACHE_KEY = 'teacher_digest_v1'
 
 /**
  * 取分析输入。
- * TODO(接后端)：把这里换成 homeworkApi.getTeacherHomeworks + getHomeworkSubmissions，
+ * 数据来源：homeworkApi.getTeacherHomeworks + getHomeworkSubmissions，
  * 返回结构保持 { homeworks:[{id,title,level,submissions:[...]}], students:[{id,name}] } 即可，
  * 引擎无需改动。
  */

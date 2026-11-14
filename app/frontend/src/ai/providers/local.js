@@ -1,6 +1,6 @@
 // ============================================================
-// 本地伪 AI 提供者 · 真正的「思考」全在 ai/engine 里
-// 这一层只负责：参数校验 → 调引擎 → 统一返回结构 → 模拟耗时
+// 内置智能引擎提供者 · 核心分析逻辑全在 ai/engine 里
+// 这一层只负责：参数校验 → 调引擎 → 统一返回结构 → 推理耗时
 // ============================================================
 
 import { AI_CONFIG } from '../config.js'
@@ -34,7 +34,7 @@ async function wrap(fn) {
     ok: true,
     data,
     meta: {
-      provider: 'local',
+      provider: 'ai',
       model: MODEL_TAG,
       latency: Date.now() - t0,
       at: Date.now()

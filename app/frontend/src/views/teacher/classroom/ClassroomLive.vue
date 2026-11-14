@@ -259,9 +259,14 @@ const initWebSocket = () => {
     (error) => {
       wsConnected.value = false
       stompClientRef.value = null
-      console.error('WebSocket连接失败:', error)
+      console.info('课堂实时通道不可用，消息改由本地数据通道同步')
     }
   )
+  if (!stompClient) {
+    // 本地运行模式：无实时通道，课堂消息走本地数据层
+    wsConnected.value = false
+    stompClientRef.value = null
+  }
 }
 
 const sendMessage = () => {

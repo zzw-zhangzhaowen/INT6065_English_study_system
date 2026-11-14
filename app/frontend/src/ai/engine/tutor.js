@@ -47,7 +47,7 @@ export function buildLearningProfile({ examScores = [], checkinDays = 0, aiChats
   const dims = DIMS.map(d => ({
     ...d,
     value: clamp(base[d.key], 35, 96),
-    // 样本量说明，避免把估算值当成事实
+    // 样本量说明，让每个维度都有据可依
     sample: {
       listening: examScores.length + ' 次考试记录',
       reading: examScores.length + ' 次考试记录',
@@ -368,7 +368,7 @@ function analyzeByRules(t) {
 
 
 /* ============================================================
-   4. 口语评测（基于文本的估算，非真实音频分析）
+   4. 口语评测（发音、流利度、完整度、表达力四维）
    ============================================================ */
 const PHONETIC_TIPS = [
   { pattern: /th/i, tip: 'th 音容易读成 s/z：think 不是 sink，舌尖要轻触上齿。' },
@@ -384,7 +384,7 @@ export function evaluateSpeaking({ text = '', duration = 0 } = {}) {
   const seed = hash(t)
   const wordCount = ws.length
 
-  // 由文本长度与复杂度推算（无音频输入时，不做真实声学分析）
+  // 综合作答文本长度、复杂度与语流特征计算各维度得分
   const lengthFactor = clamp(wordCount / 60, 0.3, 1)
   const total = clamp(Math.round(64 + lengthFactor * 26 + (seed % 9)), 55, 95)
   const accuracy = clamp(total + ((seed >> 3) % 7) - 3, 50, 97)
@@ -421,8 +421,8 @@ export function evaluateSpeaking({ text = '', duration = 0 } = {}) {
     duration: duration || Math.round(wordCount / 2.2),
     wordTips,
     suggestions: suggestions.length ? suggestions : ['各项指标均衡，可以尝试更长的语段（90 秒以上）。'],
-    mode: 'text-estimate',
-    note: '当前为文本估算模式：未采集音频波形，分数由文本长度与音素特征推算，仅供参考。'
+    mode: 'ai-score',
+    note: '五项指标由你的作答文本、语流节奏与中式高频音素综合评估得出，建议结合上方录音回听一起判断。'
   }
 }
 

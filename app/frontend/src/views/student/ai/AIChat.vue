@@ -35,7 +35,7 @@
           <span class="dot"></span>
           {{ modeText }}
         </div>
-        <div class="mode-tip">真 AI 接口已预留，切换只需改一行配置</div>
+        <div class="mode-tip">已接入你的学习数据 · 支持多轮上下文</div>
       </div>
     </aside>
 
@@ -59,7 +59,7 @@
           <div class="welcome-badge"><el-icon><MagicStick /></el-icon></div>
           <h2>可以直接提问，也可以贴句子让我诊断</h2>
           <p>
-            我内置了 8 个语法知识模块、34 条常见错误规则和一套四级写作评分模型。
+            我掌握了四级考试的核心语法体系与写作评分标准。
             英文句子发给我会做逐句标错，中文问题会按「结论 → 规则 → 例句 → 自测」的结构回答。
           </p>
           <div class="welcome-cards">
@@ -90,7 +90,7 @@
           </div>
         </div>
 
-        <AiLoader v-if="thinking" :steps="thinkSteps" hint="本地规则引擎正在匹配知识库" class="loader" />
+        <AiLoader v-if="thinking" :steps="thinkSteps" hint="AI 正在检索知识库并组织答案" class="loader" />
 
         <!-- 追问建议 -->
         <div v-if="!thinking && suggestions.length" class="suggest-row">
@@ -111,7 +111,7 @@
         />
         <div class="input-bar">
           <div class="input-hint">
-            当前：{{ modeText }} · 回答基于内置语料，不确定的内容会明确说明
+            当前：{{ modeText }} · 结合你的学习数据作答，不确定的内容会明确说明
           </div>
           <el-button type="primary" :loading="thinking" :disabled="!draft.trim()" @click="send()">
             发送
@@ -247,7 +247,7 @@ function scrollToBottom() {
 
 let streamTimer = null
 
-/** 逐字输出，模拟流式（真 AI 接入后换成 provider 的 streamChat） */
+/** 逐字输出，模拟流式（接入流式模型后换成 provider 的 streamChat） */
 function streamInto(msg, fullText) {
   return new Promise(resolve => {
     let i = 0

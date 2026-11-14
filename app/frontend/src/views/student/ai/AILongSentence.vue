@@ -42,7 +42,7 @@
             {{ result.wordCount || result.text.split(/\s+/).length }} 词
             <span v-if="result.clauseCount">· {{ result.clauseCount }} 个分句</span>
             <span v-if="result.matched" class="matched">· 已收录例句，含完整译文</span>
-            <span v-else class="unmatched">· 未收录，仅做结构分析（译文需接真 AI）</span>
+            <span v-else class="unmatched">· 该句未收录，仅做结构分析</span>
           </div>
         </div>
 

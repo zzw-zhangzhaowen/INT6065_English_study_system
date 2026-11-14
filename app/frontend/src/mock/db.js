@@ -335,16 +335,35 @@ export function studentPage({ pageNum = 1, pageSize = 10, keyword = '' } = {}) {
 }
 
 export function studentDetail(id) {
-  const s = STUDENT_MAP[id] || STUDENTS[0]
-  const r = rnd(Number(id) || 1)
+  const sid = Number(id) || 1001
+  const s = STUDENT_MAP[sid] || STUDENTS[0]
+  const r = rnd(sid)
+  const totalExams = 4 + Math.floor(r() * 6)
+  const avgScore = 60 + Math.floor(r() * 32)
+  const recentExams = [
+    { id: sid * 10 + 1, examName: 'CET4 全真模拟（第 6 套）', submitTime: '2026-11-12 20:41:12', score: 82, totalScore: 100, duration: 126, status: 'COMPLETED' },
+    { id: sid * 10 + 2, examName: '单元词汇测试 Unit 3', submitTime: '2026-11-08 15:02:33', score: 76, totalScore: 100, duration: 28, status: 'COMPLETED' },
+    { id: sid * 10 + 3, examName: '阅读专项训练（篇章）', submitTime: '2026-11-03 19:28:04', score: 71, totalScore: 100, duration: 42, status: 'COMPLETED' },
+    { id: sid * 10 + 4, examName: 'CET4 期末模拟卷（A 卷）', submitTime: '2026-10-27 10:15:47', score: 68, totalScore: 100, duration: 121, status: 'COMPLETED' }
+  ]
   return {
     ...s,
-    examCount: 4 + Math.floor(r() * 6),
-    avgScore: 60 + Math.floor(r() * 32),
+    studentNo: `2024${String(sid).padStart(6, '0')}`,
+    grade: '2024级',
+    currentLevel: s.level === 'CET6' ? 'CET-6' : 'CET-4',
+    targetLevel: s.level === 'CET6' ? 'CET-6' : 'CET-4',
+    studyDays: 8 + Math.floor(r() * 40),
+    stats: {
+      totalExams,
+      avgScore,
+      totalStudyTime: Math.round((20 + r() * 90) * 60),
+      wrongQuestionCount: 12 + Math.floor(r() * 40),
+      noteCount: 3 + Math.floor(r() * 20)
+    },
     homeworkSubmitRate: 70 + Math.floor(r() * 28),
-    wrongQuestionCount: 12 + Math.floor(r() * 40),
     recentScores: [62, 68, 71, 74, 78, 82].map(v => v + Math.floor(r() * 8)),
-    weakPoints: ['定语从句', '非谓语动词', '词汇搭配'].slice(0, 1 + Math.floor(r() * 3))
+    weakPoints: ['定语从句', '非谓语动词', '词汇搭配'].slice(0, 1 + Math.floor(r() * 3)),
+    recentExams
   }
 }
 
@@ -1481,3 +1500,151 @@ export const MONITOR_DATA = {
 }
 
 
+/* ============================================================
+   补充数据集合 · 覆盖学习中心 / 消息 / 系统管理等模块
+   ============================================================ */
+
+export const RESOURCE_CATEGORIES = [
+  { id: 401, categoryName: 'CET-4 真题', parentId: 0, level: 1, resourceCount: 24, sortOrder: 1 },
+  { id: 402, categoryName: 'CET-6 真题', parentId: 0, level: 1, resourceCount: 12, sortOrder: 2 },
+  { id: 403, categoryName: '写作专项', parentId: 0, level: 1, resourceCount: 18, sortOrder: 3 },
+  { id: 404, categoryName: '听力训练', parentId: 0, level: 1, resourceCount: 15, sortOrder: 4 },
+  { id: 405, categoryName: '口语话题', parentId: 0, level: 1, resourceCount: 9, sortOrder: 5 },
+  { id: 406, categoryName: '核心词汇', parentId: 403, level: 2, resourceCount: 11, sortOrder: 6 },
+  { id: 407, categoryName: '长难句解析', parentId: 403, level: 2, resourceCount: 7, sortOrder: 7 }
+]
+
+export const STUDY_NOTES = [
+  {
+    id: 601, title: '虚拟语气三种常见考点整理',
+    content: 'if 引导的虚拟语气：过去式表示与现在相反；should have done 表示与过去相反；would rather 句型注意省略结构。重点整理了 "wish + had done" 与 "if + had done" 的互换。',
+    type: 'NOTE', tags: ['语法', '虚拟语气', 'CET-4'], userId: 1001, userName: '张伟',
+    createTime: '2026-11-10 20:14:00', updateTime: '2026-11-12 09:30:00', viewCount: 46
+  },
+  {
+    id: 602, title: '写作 Task 2 让步段的三种写法',
+    content: '1) Although..., ...  2) While it is true that..., ...  3) Admittedly, ...; nevertheless, ...。老师批改时强调让步段必须落在具体论据上，不能空谈。',
+    type: 'NOTE', tags: ['写作', 'Task 2', '模板'], userId: 1001, userName: '张伟',
+    createTime: '2026-11-09 21:05:00', updateTime: '2026-11-11 16:42:00', viewCount: 72
+  },
+  {
+    id: 603, title: '听力场景词：机场值机高频表达',
+    content: 'check in / boarding pass / gate / baggage drop / aisle seat / window seat / connecting flight —— 整理了 20 个机场场景常见词与例句。',
+    type: 'NOTE', tags: ['听力', '场景词'], userId: 1002, userName: '李娜',
+    createTime: '2026-11-08 19:22:00', updateTime: '2026-11-10 08:15:00', viewCount: 58
+  },
+  {
+    id: 604, title: '长难句拆解练习记录（第 3—8 讲）',
+    content: '主句先行是关键：先把所有 that/which/who 引导的修饰成分括起来，剩下的就是主干。练习了 6 讲，识别准确率从 60% 提升到 85%。',
+    type: 'NOTE', tags: ['长难句', '练习'], userId: 1003, userName: '王强',
+    createTime: '2026-11-07 22:40:00', updateTime: '2026-11-09 07:20:00', viewCount: 39
+  },
+  {
+    id: 605, title: '四级高频词根词缀速记',
+    content: '-spect- 看（inspect/respect）、-duc- 引导（introduce/conduct）、-tain- 持有（maintain/retain）。词根词缀推词义比死记更快。',
+    type: 'NOTE', tags: ['词汇', '词根词缀'], userId: 1004, userName: '刘洋',
+    createTime: '2026-11-06 18:55:00', updateTime: '2026-11-08 11:10:00', viewCount: 91
+  }
+]
+
+export const STUDY_TASKS = [
+  { id: 701, title: '完成 CET-4 模拟卷（第 6 套）听力部分', type: 'EXAM', status: 'PENDING', progress: 0, deadline: '2026-11-15 23:59:00', planId: 801, userId: 1001, createTime: '2026-11-13 09:00:00' },
+  { id: 702, title: '背诵四级高频词 30 个并造句', type: 'STUDY', status: 'IN_PROGRESS', progress: 60, deadline: '2026-11-15 23:59:00', planId: 801, userId: 1001, createTime: '2026-11-13 09:00:00' },
+  { id: 703, title: '口语陪练：科技类话题 90 秒', type: 'SPEAKING', status: 'PENDING', progress: 0, deadline: '2026-11-16 23:59:00', planId: 801, userId: 1001, createTime: '2026-11-13 09:00:00' },
+  { id: 704, title: '提交作文：Online Learning 的利弊', type: 'WRITING', status: 'COMPLETED', progress: 100, deadline: '2026-11-14 23:59:00', planId: 802, userId: 1001, createTime: '2026-11-12 09:00:00' },
+  { id: 705, title: '错题本复习：定语从句 8 题', type: 'REVIEW', status: 'PENDING', progress: 0, deadline: '2026-11-16 23:59:00', planId: 802, userId: 1001, createTime: '2026-11-12 09:00:00' },
+  { id: 706, title: '长难句拆解第 9—12 讲', type: 'STUDY', status: 'IN_PROGRESS', progress: 25, deadline: '2026-11-18 23:59:00', planId: 803, userId: 1002, createTime: '2026-11-11 09:00:00' },
+  { id: 707, title: '听力精听 Day 12', type: 'LISTENING', status: 'PENDING', progress: 0, deadline: '2026-11-17 23:59:00', planId: 803, userId: 1002, createTime: '2026-11-11 09:00:00' }
+]
+
+export const STUDY_PLANS = [
+  { id: 801, planName: '四级冲刺 · 第 1 周', goal: '完成两套真题 + 核心词汇一轮', startDate: '2026-11-13', endDate: '2026-11-19', status: 'IN_PROGRESS', totalTasks: 5, completedTasks: 1, userId: 1001, createTime: '2026-11-13 08:30:00' },
+  { id: 802, planName: '写作专项强化', goal: '掌握四段式结构与让步段写法', startDate: '2026-11-09', endDate: '2026-11-16', status: 'IN_PROGRESS', totalTasks: 4, completedTasks: 2, userId: 1001, createTime: '2026-11-09 08:30:00' },
+  { id: 803, planName: '听力长难句双线提升', goal: '听力正确率提升到 70%', startDate: '2026-11-11', endDate: '2026-11-20', status: 'IN_PROGRESS', totalTasks: 6, completedTasks: 1, userId: 1002, createTime: '2026-11-11 08:30:00' },
+  { id: 804, planName: '口语话题库积累', goal: '覆盖 20 个高频话题', startDate: '2026-10-28', endDate: '2026-11-11', status: 'COMPLETED', totalTasks: 8, completedTasks: 8, userId: 1003, createTime: '2026-10-28 08:30:00' }
+]
+
+export const MESSAGES = [
+  { id: 2001, title: '作文批改反馈：Online Learning: Benefits and Challenges', content: '张伟同学，你这篇作文结构清晰，四段式用得比较稳。问题在于第三段论据展开不足，两个论点都只停在一句话。建议每个论点补一个具体场景或数据支撑。另外 conclusion 段的套话偏多，试试回扣题干关键词。', type: 'ASSIGNMENT', senderId: 2001, senderName: '王老师', receiverId: 1001, receiverName: '张伟', isRead: 0, createTime: '2026-11-13 08:31:07' },
+  { id: 2002, title: '口语陪练报告已生成', content: '你本周完成了 4 次口语陪练，流利度平均 72 分、发音准确度 68 分。th 音和词尾辅音仍是主要失分点，建议每天跟读 5 分钟。', type: 'SYSTEM', senderId: 1, senderName: '系统', receiverId: 1001, receiverName: '张伟', isRead: 0, createTime: '2026-11-12 20:10:00' },
+  { id: 2003, title: '作业已批改', content: '本次作业共 3 题，你答对 2 题。第 3 题考查定语从句引导词的选择，注意 that 与 which 的区分。', type: 'ASSIGNMENT', senderId: 2001, senderName: '王老师', receiverId: 1001, receiverName: '张伟', isRead: 1, createTime: '2026-11-11 15:42:18' },
+  { id: 2004, title: '考试提醒：四级模拟卷（第 6 套）', content: '你报名的四级模拟卷将于 2026-11-20 08:00 开放，考试时长 130 分钟，共 14 题，满分 100 分，60 分及格。请提前登录熟悉考试流程。', type: 'EXAM', senderId: 1, senderName: '系统', receiverId: 1001, receiverName: '张伟', isRead: 1, createTime: '2026-11-10 09:05:00' },
+  { id: 2005, title: '课堂通知：周四口语工作坊', content: '本周四下午 15:30 在语音教室 3 开展口语工作坊，主题是 Part 2 话题卡的三分钟结构，请携带一本笔记本。', type: 'NOTICE', senderId: 2001, senderName: '王老师', receiverId: 1001, receiverName: '张伟', isRead: 1, createTime: '2026-11-09 10:22:00' },
+  { id: 2006, title: '社区互动：你的笔记被点赞 12 次', content: '你发布的《虚拟语气三种常见考点整理》获得了 12 次点赞和 3 条评论，快去看看大家都在讨论什么。', type: 'SYSTEM', senderId: 1, senderName: '系统', receiverId: 1002, receiverName: '李娜', isRead: 0, createTime: '2026-11-13 07:45:00' },
+  { id: 2007, title: '学习小组邀请', content: '「四级冲刺小组」邀请你加入，成员目前 6 人，每周完成 3 次共学打卡。', type: 'NOTICE', senderId: 2002, senderName: '李老师', receiverId: 1003, receiverName: '王强', isRead: 1, createTime: '2026-11-12 13:18:00' },
+  { id: 2008, title: '课程资源更新通知', content: '「长难句拆解 20 讲」已更新第 11—14 讲，新增 12 个真题例句拆解。', type: 'SYSTEM', senderId: 1, senderName: '系统', receiverId: 1004, receiverName: '刘洋', isRead: 1, createTime: '2026-11-08 16:30:00' }
+]
+
+export const PHOTOS = [
+  { filename: 'default-avatar.png', url: '/photo/default-avatar.png', size: 48213 },
+  { filename: 'login-bg.jpg', url: '/photo/login-bg.jpg', size: 1287406 },
+  { filename: 'campus-banner.jpg', url: '/photo/campus-banner.jpg', size: 964512 },
+  { filename: 'library-cover.png', url: '/photo/library-cover.png', size: 231044 },
+  { filename: 'empty-state.svg', url: '/photo/empty-state.svg', size: 4180 },
+  { filename: 'classroom-icon.png', url: '/photo/classroom-icon.png', size: 38255 }
+]
+
+export const BACKUPS = [
+  { id: 901, filename: 'backup_20261113_020000.zip', size: 41943040, type: 'AUTO', status: 'SUCCESS', createTime: '2026-11-13 02:00:00', duration: 42 },
+  { id: 902, filename: 'backup_20261112_020000.zip', size: 41250816, type: 'AUTO', status: 'SUCCESS', createTime: '2026-11-12 02:00:00', duration: 39 },
+  { id: 903, filename: 'backup_20261111_020000.zip', size: 40804352, type: 'AUTO', status: 'SUCCESS', createTime: '2026-11-11 02:00:00', duration: 41 },
+  { id: 904, filename: 'manual_backup_20261110.zip', size: 42598400, type: 'MANUAL', status: 'SUCCESS', createTime: '2026-11-10 16:24:00', duration: 51 },
+  { id: 905, filename: 'backup_20261109_020000.zip', size: 39845888, type: 'AUTO', status: 'SUCCESS', createTime: '2026-11-09 02:00:00', duration: 37 },
+  { id: 906, filename: 'backup_20261108_020000.zip', size: 39157760, type: 'AUTO', status: 'FAILED', createTime: '2026-11-08 02:00:00', duration: 12 }
+]
+
+export const CHECKIN_LOGS = [
+  { id: 1001, userId: 1001, userName: '张伟', checkinDate: '2026-11-13', checkinTime: '08:12:33', duration: 45, content: '背单词 30 个 + 听力精听 1 篇', continuousDays: 5 },
+  { id: 1002, userId: 1001, userName: '张伟', checkinDate: '2026-11-12', checkinTime: '21:04:18', duration: 60, content: '完成一套真题的阅读部分', continuousDays: 4 },
+  { id: 1003, userId: 1001, userName: '张伟', checkinDate: '2026-11-11', checkinTime: '07:45:02', duration: 30, content: '口语跟读 10 分钟', continuousDays: 3 },
+  { id: 1004, userId: 1001, userName: '张伟', checkinDate: '2026-11-10', checkinTime: '22:16:47', duration: 50, content: '长难句拆解 3 讲', continuousDays: 2 },
+  { id: 1005, userId: 1002, userName: '李娜', checkinDate: '2026-11-13', checkinTime: '09:20:11', duration: 40, content: '写作素材整理', continuousDays: 12 },
+  { id: 1006, userId: 1003, userName: '王强', checkinDate: '2026-11-13', checkinTime: '06:58:40', duration: 55, content: '真题听力两套', continuousDays: 8 },
+  { id: 1007, userId: 1004, userName: '刘洋', checkinDate: '2026-11-12', checkinTime: '19:30:05', duration: 25, content: '词汇复习', continuousDays: 3 }
+]
+
+export const CLASSROOM_MESSAGES = [
+  { id: 1101, classroomId: 1, senderId: 2001, senderName: '王老师', content: '同学们好，今天我们练习 Part 2 的三分钟结构。', messageType: 'TEXT', sendTime: '2026-11-13 08:00:12' },
+  { id: 1102, classroomId: 1, senderId: 1001, senderName: '张伟', content: '老师，Part 2 的卡片有提示词吗？', messageType: 'TEXT', sendTime: '2026-11-13 08:02:41' },
+  { id: 1103, classroomId: 1, senderId: 2001, senderName: '王老师', content: '有的，题目下方会给出 3 个追问点，请务必覆盖全部。', messageType: 'TEXT', sendTime: '2026-11-13 08:03:15' },
+  { id: 1104, classroomId: 1, senderId: 1002, senderName: '李娜', content: '三分钟是不是要讲满？', messageType: 'TEXT', sendTime: '2026-11-13 08:04:02' },
+  { id: 1105, classroomId: 1, senderId: 2001, senderName: '王老师', content: '建议讲到 2 分 30 秒以上，留出时间总结。', messageType: 'TEXT', sendTime: '2026-11-13 08:04:38' },
+  { id: 1106, classroomId: 1, senderId: 1003, senderName: '王强', content: '收到，谢谢老师！', messageType: 'TEXT', sendTime: '2026-11-13 08:05:10' }
+]
+
+export const CLASSROOM_QUESTIONS = [
+  { id: 1201, classroomId: 1, username: '张伟', avatar: '', content: 'Part 2 的三分钟结构应该怎么分配时间？', status: 'ANSWERED', likeCount: 6, answerCount: 2, createTime: '2026-11-13 08:06:20', answers: [
+    { id: 1301, username: '王老师', avatar: '', content: '建议 30 秒读题与构思，2 分钟主体展开，30 秒总结。每段之间用 First / Another thing / To sum up 过渡。', isBest: true, createTime: '2026-11-13 08:07:05' },
+    { id: 1302, username: '李娜', avatar: '', content: '补充一下：如果第一个观点展开不开，可以先说观点再举例，不要卡在构思上。', isBest: false, createTime: '2026-11-13 08:08:33' }
+  ] },
+  { id: 1202, classroomId: 1, username: '李娜', avatar: '', content: '考官更看重内容还是流利度？', status: 'OPEN', likeCount: 3, answerCount: 0, createTime: '2026-11-13 08:09:44', answers: [] },
+  { id: 1203, classroomId: 1, username: '王强', avatar: '', content: '有没有推荐的万能理由？', status: 'OPEN', likeCount: 1, answerCount: 0, createTime: '2026-11-13 08:11:12', answers: [] }
+]
+
+export const CLASSROOM_POLLS = [
+  { id: 1401, classroomId: 1, title: '今天的课堂重点你觉得是哪个？', pollType: 'SINGLE', anonymous: false, status: 'ACTIVE', totalVotes: 8, createTime: '2026-11-13 08:10:00', options: [
+    { id: 1, content: '三分钟结构的时间分配', voteCount: 5 },
+    { id: 2, content: '追问点的展开技巧', voteCount: 2 },
+    { id: 3, content: '衔接词的使用', voteCount: 1 }
+  ] },
+  { id: 1402, classroomId: 1, title: '你更希望增加哪类练习？', pollType: 'MULTIPLE', anonymous: true, status: 'CLOSED', totalVotes: 12, createTime: '2026-11-13 08:20:00', options: [
+    { id: 1, content: '一对一口语陪练', voteCount: 7 },
+    { id: 2, content: '限时答题', voteCount: 4 },
+    { id: 3, content: '范文精读', voteCount: 6 }
+  ] }
+]
+
+export const CLASSROOM_SIGN_INS = [
+  { id: 1501, classroomId: 1, userId: 1001, userName: '张伟', signInTime: '2026-11-13 08:01:05', status: 'SIGNED' },
+  { id: 1502, classroomId: 1, userId: 1002, userName: '李娜', signInTime: '2026-11-13 08:01:22', status: 'SIGNED' },
+  { id: 1503, classroomId: 1, userId: 1003, userName: '王强', signInTime: '2026-11-13 08:02:10', status: 'SIGNED' },
+  { id: 1504, classroomId: 1, userId: 1004, userName: '刘洋', signInTime: '', status: 'ABSENT' }
+]
+
+export const COMMUNITY_REPLIES = [
+  { id: 1601, postId: 1, userId: 1002, userName: '李娜', content: '补充一点：would rather 后面接动词原形，不能用过去式。', likeCount: 8, isLiked: false, createTime: '2026-11-12 21:30:00' },
+  { id: 1602, postId: 1, userId: 1003, userName: '王强', content: '同意，顺便提醒 wish + had done 结构里谓语要用过去分词。', likeCount: 5, isLiked: false, createTime: '2026-11-12 22:10:00' },
+  { id: 1603, postId: 2, userId: 1001, userName: '张伟', content: '这个结构我总是混，老师讲的那张对照表很有用。', likeCount: 3, isLiked: false, createTime: '2026-11-11 19:05:00' }
+]
+
+export const FOLLOWED_USERS = [1002, 1003]

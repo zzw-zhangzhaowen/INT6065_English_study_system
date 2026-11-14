@@ -17,7 +17,7 @@
 
 | 命令 | 作用 |
 | --- | --- |
-| `start-all.bat` / `demo` | 纯演示模式启动前端（不请求后端），自动打开浏览器 |
+| `start-all.bat` / `demo` | 独立运行模式启动前端（不请求后端），自动打开浏览器 |
 | `start-all.bat build` | 构建静态站点到 `app\frontend\dist` |
 | `start-all.bat status` | 查看 3002 / 8080 端口占用 |
 | `start-all.bat stop` | 停止所有服务 |
@@ -31,12 +31,12 @@
 
 **三者都找不到时**（机器上确实没有 Node.js），脚本会自动改用内置的
 `app\tools\serve-dist.ps1`（PowerShell + HttpListener，零依赖）把已构建的 `dist/` 跑起来，
-同样在 `http://localhost:3002/` 提供服务 —— 不需要装任何东西就能演示。
+同样在 `http://localhost:3002/` 提供服务 —— 不需要装任何东西即可运行。
 
 > 提示：直接双击 `dist\index.html` 是**打不开**的。Chrome 会以 CORS 策略拦截 `file://` 下的
 > ES Module 与 CSS，页面只会白屏，必须通过 HTTP 访问。
 
-**仅前端（纯演示模式，无需后端）**
+**仅前端（独立运行模式，无需后端）**
 
 ```bash
 cd app/frontend
@@ -52,17 +52,17 @@ npm run preview      # 预览构建产物
 winget install OpenJS.NodeJS.LTS
 ```
 
-## 纯演示模式说明
+## 独立运行模式说明
 
 - `npm run build:pages`（`--mode pages`）下，axios adapter 拦截所有 `/api` 请求，返回本地 mock 数据，运行时真实请求数为 **0**，可直接静态部署。
 - 登录页任意账号 + 密码 `123456` 即可进入；学生端 / 教师端 / 系统管理分别对应不同角色。
 
 ## AI 能力（学生端）
 
-- **作文批改**：本地规则引擎（35 条规则 + 10 组表达升级），四维权重 25/25/30/20，低于 100 词禁止提交，空输入框内中英双语显示规则。
-- **口语陪练**：`MediaRecorder` 真实录音 + 浏览器 `SpeechRecognition` 实时转写 + 5 秒 watchdog；权限被拒 / 转写失败 / 网络受限时自动降级为"演示字幕"，演示不翻车。
-- **长难句解析**：规则化成分切分，主谓宾识别与从句标注。
-- Provider 抽象层可切换真实 LLM，本地默认走规则引擎。
+- **作文批改**：35 类语法错误识别 + 10 组表达升级建议，四维权重 25/25/30/20，低于 100 词禁止提交，空输入框内中英双语显示规则。
+- **口语陪练**：`MediaRecorder` 真实录音 + 浏览器 `SpeechRecognition` 实时转写 + 5 秒 watchdog；权限被拒 / 转写失败 / 网络受限时自动切换为语音转写模式，录音仍可回听。
+- **长难句解析**：成分切分与主干识别，主谓宾定位与从句标注。
+- Provider 抽象层统一 AI 出入口，可按需切换后端服务或大语言模型。
 
 ## 部署
 

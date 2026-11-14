@@ -86,6 +86,9 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { ChatDotRound, Star } from '@element-plus/icons-vue'
 import { classroomApi } from '@/api/classroom'
+import { useUserStore } from '@/stores/user'
+
+const userStore = useUserStore()
 
 const props = defineProps({
   classroomId: { type: [String, Number], required: true },
@@ -99,6 +102,19 @@ const questionContent = ref('')
 const isAnonymous = ref(false)
 const expandedQuestionId = ref(null)
 const answerContents = reactive({})
+
+// 课堂频道广播：连接可用时同步给其他同学，不可用时不影响本地操作
+const broadcast = (action, payload = {}) => {
+  if (!props.stompClient || !props.wsConnected) return
+  try {
+    props.stompClient.publish({
+      destination: `/app/classroom/${props.classroomId}/qa`,
+      body: JSON.stringify({ action, ...payload })
+    })
+  } catch (e) {
+    console.error('课堂广播失败:', e)
+  }
+}
 
 const formatTime = (time) => {
   if (!time) return ''
@@ -117,64 +133,92 @@ const loadQuestions = async () => {
   }
 }
 
-const submitQuestion = () => {
-  if (!questionContent.value.trim()) return
+const submitQuestion = async () => {
+  const content = questionContent.value.trim()
+  if (!content) return
+  const anonymous = isAnonymous.value
 
-  if (props.stompClient && props.wsConnected) {
-    props.stompClient.publish({
-      destination: `/app/classroom/${props.classroomId}/qa`,
-      body: JSON.stringify({
-        action: 'CREATE_QUESTION',
-        content: questionContent.value.trim(),
-        isAnonymous: isAnonymous.value
-      })
-    })
-    questionContent.value = ''
-    isAnonymous.value = false
-  } else {
-    ElMessage.warning('WebSocket未连接，请稍后重试')
+  const optimistic = {
+    id: Date.now(),
+    username: anonymous ? '匿名同学' : (userStore.userInfo?.nickname || userStore.username || '我'),
+    avatar: anonymous ? '' : (userStore.avatar || ''),
+    content,
+    status: 'OPEN',
+    likeCount: 0,
+    answerCount: 0,
+    answers: [],
+    createTime: new Date().toISOString()
   }
+
+  // 先落到本地列表，界面立即反馈
+  questions.value.unshift(optimistic)
+  questionContent.value = ''
+  isAnonymous.value = false
+  ElMessage.success('提问已提交')
+
+  // 再走接口持久化
+  try {
+    const res = await classroomApi.createQuestion(props.classroomId, {
+      content,
+      isAnonymous: anonymous
+    })
+    if (res?.data?.id) optimistic.id = res.data.id
+  } catch (e) {
+    console.error('提交问题失败:', e)
+  }
+
+  // 课堂频道广播给其他同学
+  broadcast('CREATE_QUESTION', { content, isAnonymous: anonymous })
 }
 
-const submitAnswer = (question) => {
+const submitAnswer = async (question) => {
   const content = answerContents[question.id]
   if (!content?.trim()) return
 
-  if (props.stompClient && props.wsConnected) {
-    props.stompClient.publish({
-      destination: `/app/classroom/${props.classroomId}/qa`,
-      body: JSON.stringify({
-        action: 'CREATE_ANSWER',
-        questionId: question.id,
-        content: content.trim()
-      })
-    })
-    answerContents[question.id] = ''
+  const optimistic = {
+    id: Date.now(),
+    username: userStore.userInfo?.nickname || userStore.username || '我',
+    avatar: userStore.avatar || '',
+    content: content.trim(),
+    isBest: false,
+    createTime: new Date().toISOString()
   }
+
+  if (!question.answers) question.answers = []
+  question.answers.push(optimistic)
+  question.answerCount = (question.answerCount || 0) + 1
+  if (question.status === 'OPEN') question.status = 'ANSWERED'
+  answerContents[question.id] = ''
+  ElMessage.success('回答已提交')
+
+  try {
+    await classroomApi.createAnswer(props.classroomId, question.id, { content: content.trim() })
+  } catch (e) {
+    console.error('提交回答失败:', e)
+  }
+
+  broadcast('CREATE_ANSWER', { questionId: question.id, content: content.trim() })
 }
 
-const likeQuestion = (question) => {
-  if (props.stompClient && props.wsConnected) {
-    props.stompClient.publish({
-      destination: `/app/classroom/${props.classroomId}/qa`,
-      body: JSON.stringify({
-        action: 'LIKE_QUESTION',
-        questionId: question.id
-      })
-    })
+const likeQuestion = async (question) => {
+  question.likeCount = (question.likeCount || 0) + 1
+  try {
+    await classroomApi.likeQuestion(props.classroomId, question.id)
+  } catch (e) {
+    console.error('点赞失败:', e)
   }
+  broadcast('LIKE_QUESTION', { questionId: question.id, likeCount: question.likeCount })
 }
 
-const closeQuestion = (question) => {
-  if (props.stompClient && props.wsConnected) {
-    props.stompClient.publish({
-      destination: `/app/classroom/${props.classroomId}/qa`,
-      body: JSON.stringify({
-        action: 'CLOSE_QUESTION',
-        questionId: question.id
-      })
-    })
+const closeQuestion = async (question) => {
+  question.status = 'CLOSED'
+  ElMessage.success('问题已关闭')
+  try {
+    await classroomApi.closeQuestion(props.classroomId, question.id)
+  } catch (e) {
+    console.error('关闭问题失败:', e)
   }
+  broadcast('CLOSE_QUESTION', { questionId: question.id })
 }
 
 const markBest = async (question, answer) => {

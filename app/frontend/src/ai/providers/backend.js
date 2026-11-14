@@ -9,7 +9,7 @@ import { AI_CONFIG } from '../config.js'
 const EP = AI_CONFIG.backend.endpoints
 
 function notImplemented(name) {
-  const e = new Error(`后端 provider 未实现 ${name}`)
+  const e = new Error(`后端 provider 暂不支持 ${name}`)
   e.code = 'NOT_IMPLEMENTED'
   return e
 }
@@ -52,7 +52,7 @@ async function grammarCheck({ text = '' } = {}) {
   return { ok: true, data: res?.data || {}, meta: { provider: 'backend', at: Date.now() } }
 }
 
-// 后端尚未提供的能力，直接抛错由上层降级到本地引擎
+// 后端尚未提供的能力，直接抛错由上层降级到内置引擎
 async function teacherDigest() { throw notImplemented('teacherDigest') }
 async function teacherPreGrade() { throw notImplemented('teacherPreGrade') }
 async function learningProfile() { throw notImplemented('learningProfile') }

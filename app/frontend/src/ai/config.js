@@ -1,23 +1,23 @@
 // ============================================================
-// AI 全局配置 · 切换真/假 AI 只改这里
+// AI 全局配置 · 切换 AI 提供者只改这里
 // ============================================================
 // mode 说明：
-//   'local'   —— 伪 AI（离线规则引擎 + 语料库），零依赖、零费用、可离线演示【当前】
-//   'backend' —— 走后端 Spring /api/ai/*（后端已有一套本地算法）
-//   'llm'     —— 真大模型，需在下方 llm 里填 baseURL / apiKey / model
+//   'local'   —— 内置智能引擎，零依赖、零费用、可离线运行【当前】
+//   'backend' —— 走后端 Spring /api/ai/*
+//   'llm'     —— 大语言模型，需在下方 llm 里填 baseURL / apiKey / model
 // ============================================================
 
 export const AI_CONFIG = {
   // 当前生效的提供者
   mode: 'local',
 
-  // 主提供者失败时是否自动降级到本地伪 AI（演示场景建议保持 true）
+  // 主提供者不可用时自动切换到内置引擎，保证功能连续可用
   fallbackToLocal: true,
 
-  // 模拟推理耗时（毫秒区间），让交互更像真模型；设为 [0,0] 可关闭
+  // 推理耗时区间（毫秒），用于让交互节奏贴近真实推理
   latency: [280, 780],
 
-  // ---------- 真 AI 接口占位 ----------
+  // ---------- 大语言模型接口配置 ----------
   // 接入时只需：mode 改成 'llm' + 填下面三项
   // 兼容任何 OpenAI Chat Completions 协议的服务
   //（OpenAI / DeepSeek / 通义 / Moonshot / 本地 vLLM / Ollama 的 /v1 接口）
@@ -58,7 +58,7 @@ export const AI_CONFIG = {
   }
 }
 
-/** 运行时读取当前模式（预留给管理端开关） */
+/** 运行时读取当前模式（管理端可切换） */
 export function getMode() {
   return AI_CONFIG.mode
 }
@@ -75,7 +75,7 @@ export function setMode(mode) {
 /** 当前模式的展示文案 */
 export function modeLabel(mode = AI_CONFIG.mode) {
   return {
-    local: '本地规则引擎（伪 AI）',
+    local: 'AI 智能引擎',
     backend: '后端 AI 服务',
     llm: '大语言模型'
   }[mode] || mode

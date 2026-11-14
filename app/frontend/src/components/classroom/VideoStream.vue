@@ -8,11 +8,11 @@
       </div>
     </div>
 
-    <!-- 未推流时的占位 -->
+    <!-- 未开始时的画面占位 -->
     <div class="video-placeholder" v-show="!isStreaming">
       <el-icon :size="64" color="#999"><VideoCamera /></el-icon>
-      <p>视频推流区域</p>
-      <p class="hint">点击下方按钮开始推流</p>
+      <p>课堂画面</p>
+      <p class="hint">点击下方按钮开始上课</p>
     </div>
 
     <!-- 控制栏 -->
@@ -35,7 +35,7 @@
         </el-button>
       </el-tooltip>
 
-      <el-tooltip v-if="isStreaming" content="停止推流" placement="top">
+      <el-tooltip v-if="isStreaming" content="结束直播" placement="top">
         <el-button type="danger" circle @click="stopStream">
           <el-icon><VideoPause /></el-icon>
         </el-button>
@@ -255,7 +255,7 @@ const stopStream = () => {
   if (isCameraOn.value) {
     stopCameraStream()
   }
-  ElMessage.info('推流已停止')
+  ElMessage.info('直播已结束')
 }
 
 defineExpose({ getRecordingBlob })

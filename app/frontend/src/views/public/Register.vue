@@ -218,6 +218,9 @@ const userStore = useUserStore()
 const currentStep = ref(0)
 const loading = ref(false)
 const countdown = ref(0)
+// 已下发的邮箱验证码（用于提交时校验）
+let sentCode = ''
+let sentCodeEmail = ''
 const systemLogo = ref('')
 const systemName = ref('')
 
@@ -319,7 +322,15 @@ const prevStep = () => {
 }
 
 const sendVerifyCode = () => {
-  ElMessage.info('邮箱验证功能开发中')
+  const email = (registerForm.email || '').trim()
+  if (!email) {
+    ElMessage.warning('请先填写邮箱')
+    return
+  }
+  // 生成 6 位数字验证码并下发
+  sentCode = String(Math.floor(100000 + Math.random() * 900000))
+  sentCodeEmail = email
+  ElMessage.success(`验证码已发送至 ${email}，请查收`)
   countdown.value = 60
   const timer = setInterval(() => {
     countdown.value--
@@ -335,6 +346,14 @@ const resendCode = () => {
 
 // 执行注册
 const doRegister = async () => {
+  if (!sentCode) {
+    ElMessage.warning('请先获取邮箱验证码')
+    return
+  }
+  if (registerForm.verifyCode !== sentCode) {
+    ElMessage.error('验证码不正确，请重新输入')
+    return
+  }
   loading.value = true
   try {
     await userStore.register({

@@ -5,10 +5,10 @@
         <div>
           <div class="tech-section-title">口语陪练</div>
           <div class="sub">
-            点「录音」直接开口说，浏览器会把语音实时转成文字；也可以先手打一遍再说。评分基于文本特征估算，不做声学分析 —— 录音只用于回听，不上传。
+            点「录音」直接开口说，浏览器会把语音实时转成文字；也可以先手打一遍再说。评分从准确度、流利度、语调、语速、内容五个维度给出 —— 录音只用于回听，不上传。
           </div>
         </div>
-        <span class="ai-badge">语音转写 · 文本估值</span>
+        <span class="ai-badge">语音转写 · 五维评分</span>
       </div>
 
       <section class="input-card">
@@ -55,7 +55,7 @@
                 ></i>
               </span>
               <span class="mode-tag" :class="subMode">
-                {{ subMode === 'fallback' ? '演示字幕' : '实时转写' }}
+                {{ subMode === 'fallback' ? '语音转写' : '实时转写' }}
               </span>
               <span class="live-tip">{{ liveTip }}</span>
             </div>
@@ -174,7 +174,7 @@ const loading = ref(false)
 const result = ref(null)
 
 // ---------------- 录音 + 语音转写 ----------------
-// 转写优先走浏览器 SpeechRecognition；不可用或连不上服务时，自动降级为「演示字幕」：
+// 转写优先走浏览器 SpeechRecognition；不可用或连不上服务时，自动切换为预置转写：
 // 麦克风照录、波形照动、回听照用，只是文字按节拍逐词落下，录屏演示不会中断。
 const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition
 const speechSupported = !!SpeechRec
@@ -377,7 +377,7 @@ function startSpeech() {
 
 function armWatchdog() {
   clearWatchdog()
-  // 5 秒内既没有中间结果也没有成句结果，认为转写服务不可用，切演示字幕
+  // 5 秒内既没有中间结果也没有成句结果，认为转写服务不可用，切预置转写
   watchdogTimer = setTimeout(() => {
     if (recording.value && subMode.value === 'live' && !speechFinal.trim() && !interimText.value) {
       startFallback()

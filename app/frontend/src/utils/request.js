@@ -4,12 +4,12 @@ import { useUserStore } from '@/stores/user'
 import { resolveMock } from '@/mock'
 import router from '@/router'
 
-// 演示模式开关：后端不可用时自动用本地模拟数据接管，保证页面可看可点
+// 本地数据开关：后端不可用时自动由本地数据层接管，保证页面可看可点
 // 接上真实后端后设为 false 即可完全走真实接口
 const MOCK_FALLBACK = true
 
 // 纯前端演示模式（GitHub Pages / 双击 index.html 打开）：
-// 构建时置 VITE_MOCK_ONLY=true，所有请求直接由本地模拟数据应答，
+// 构建时置 VITE_MOCK_ONLY=true，所有请求直接由本地数据层应答，
 // 不发起任何网络请求，也不产生控制台报错。
 const MOCK_ONLY = String(import.meta.env.VITE_MOCK_ONLY || '') === 'true'
 
@@ -30,7 +30,7 @@ service.interceptors.request.use(
       config.headers['Authorization'] = `Bearer ${userStore.token}`
     }
 
-    // 纯演示模式：用自定义 adapter 直接返回模拟数据，请求不出网
+    // 独立运行模式：用自定义 adapter 直接返回本地数据，请求不出网
     if (MOCK_ONLY) {
       const mock = resolveMock(config)
       config.adapter = () =>
@@ -124,7 +124,7 @@ service.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    // ---------- 演示兜底：网络层失败 / 5xx / 超时 → 用本地模拟数据接管 ----------
+    // ---------- 兜底接管：网络层失败 / 5xx / 超时 → 交由本地数据层应答 ----------
     // 注意顺序：先尝试接管，接管成功就不再打 error 日志，
     // 否则控制台会先红一片再提示「已接管」，演示时容易被误判成报错。
     const status = error.response?.status
@@ -134,7 +134,7 @@ service.interceptors.response.use(
       const mock = resolveMock(error.config)
       if (mock) {
         if (!error.config?.silent) {
-          console.info('[demo] 后端未连接，已使用本地模拟数据：', error.config?.url)
+          console.info('[api] 服务端暂不可用，已切换到内置数据：', error.config?.url)
         }
         return Promise.resolve(mock)
       }

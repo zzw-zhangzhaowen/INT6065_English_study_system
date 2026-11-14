@@ -1,7 +1,7 @@
 // ============================================================
-// 真 AI 提供者 · 接口占位（当前未启用）
+// 大语言模型提供者
 // ------------------------------------------------------------
-// 启用步骤（接真模型时只看这一段）：
+// 启用步骤：
 //   1. ai/config.js → mode 改成 'llm'
 //   2. 填 llm.baseURL / apiKey / model
 //   3. 生产环境把 viaProxy 设为 true，并在后端加一个
@@ -9,13 +9,13 @@
 //   4. 需要逐字输出时把 llm.stream 设为 true，并在 UI 层消费 streamChat()
 //
 // 本文件已实现：chat 的完整调用链（含 OpenAI 兼容协议解析）
-// 其余方法留空并抛 NOT_IMPLEMENTED，由 ai/index.js 自动降级到本地引擎
+// 其余方法留空并抛 NOT_IMPLEMENTED，由 ai/index.js 自动降级到内置引擎
 // ============================================================
 
 import { AI_CONFIG } from '../config.js'
 
 const NOT_IMPLEMENTED = name => {
-  const e = new Error(`llm provider 未实现 ${name}，已回退本地引擎`)
+  const e = new Error(`llm provider 暂不支持 ${name}，已切换到内置引擎`)
   e.code = 'NOT_IMPLEMENTED'
   return e
 }
@@ -77,7 +77,7 @@ async function callLLM(messages, extra = {}) {
 }
 
 /**
- * 流式调用（逐字返回）—— 预留给真 AI
+ * 流式调用（逐字返回）
  * @param {Array} messages
  * @param {(chunk: string) => void} onDelta
  */
@@ -144,8 +144,8 @@ async function chat({ question = '', messages = [] } = {}) {
   }
 }
 
-// 以下方法在接真模型时按「让模型输出 JSON → 前端渲染」的思路实现
-// 目前统一抛错，由 index.js 降级到本地引擎，保证页面永远有结果
+// 以下方法按「让模型输出 JSON → 前端渲染」的思路实现
+// 目前统一抛错，由 index.js 降级到内置引擎，保证页面永远有结果
 async function correctWriting() { throw NOT_IMPLEMENTED('correctWriting') }
 async function grammarCheck() { throw NOT_IMPLEMENTED('grammarCheck') }
 async function teacherDigest() { throw NOT_IMPLEMENTED('teacherDigest') }

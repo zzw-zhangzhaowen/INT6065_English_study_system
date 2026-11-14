@@ -129,6 +129,19 @@ const showCreateDialog = ref(false)
 const selectedOptions = reactive({})
 const votedPolls = reactive({})
 
+// 课堂频道广播：连接可用时同步给其他同学，不可用时不影响本地操作
+const broadcast = (action, payload = {}) => {
+  if (!props.stompClient || !props.wsConnected) return
+  try {
+    props.stompClient.publish({
+      destination: `/app/classroom/${props.classroomId}/poll`,
+      body: JSON.stringify({ action, ...payload })
+    })
+  } catch (e) {
+    console.error('课堂广播失败:', e)
+  }
+}
+
 const createForm = reactive({
   title: '',
   pollType: 'SINGLE',
@@ -173,60 +186,85 @@ const selectOption = (poll, opt) => {
   }
 }
 
-const submitVote = (poll) => {
+const submitVote = async (poll) => {
   const optionIds = selectedOptions[poll.id]
   if (!optionIds?.length) {
     ElMessage.warning('请选择一个选项')
     return
   }
 
-  if (props.stompClient && props.wsConnected) {
-    props.stompClient.publish({
-      destination: `/app/classroom/${props.classroomId}/poll`,
-      body: JSON.stringify({
-        action: 'VOTE',
-        pollId: poll.id,
-        optionIds
-      })
-    })
-    votedPolls[poll.id] = true
+  // 先在本地计票，界面立即反馈
+  votedPolls[poll.id] = true
+  poll.totalVotes = (poll.totalVotes || 0) + optionIds.length
+  poll.options?.forEach(opt => {
+    if (optionIds.includes(opt.id)) {
+      opt.voteCount = (opt.voteCount || 0) + 1
+    }
+  })
+  ElMessage.success('投票已提交')
+
+  try {
+    await classroomApi.vote(props.classroomId, poll.id, { optionIds })
+  } catch (e) {
+    console.error('提交投票失败:', e)
   }
+
+  broadcast('VOTE', { pollId: poll.id, optionIds })
 }
 
-const closePoll = (poll) => {
-  if (props.stompClient && props.wsConnected) {
-    props.stompClient.publish({
-      destination: `/app/classroom/${props.classroomId}/poll`,
-      body: JSON.stringify({
-        action: 'CLOSE_POLL',
-        pollId: poll.id
-      })
-    })
+const closePoll = async (poll) => {
+  poll.status = 'CLOSED'
+  ElMessage.success('投票已结束')
+
+  try {
+    await classroomApi.closePoll(props.classroomId, poll.id)
+  } catch (e) {
+    console.error('结束投票失败:', e)
   }
+
+  broadcast('CLOSE_POLL', { pollId: poll.id })
 }
 
-const createPoll = () => {
+const createPoll = async () => {
   const validOptions = createForm.options.filter(o => o.trim())
   if (validOptions.length < 2) {
     ElMessage.warning('至少需要2个有效选项')
     return
   }
 
-  if (props.stompClient && props.wsConnected) {
-    props.stompClient.publish({
-      destination: `/app/classroom/${props.classroomId}/poll`,
-      body: JSON.stringify({
-        action: 'CREATE_POLL',
-        title: createForm.title.trim(),
-        pollType: createForm.pollType,
-        anonymous: createForm.anonymous,
-        options: validOptions
-      })
-    })
-    showCreateDialog.value = false
-    resetCreateForm()
-    ElMessage.success('投票已发起')
+  // 先在本地新增投票，界面立即可见
+  const optimistic = {
+    id: Date.now(),
+    title: createForm.title.trim(),
+    pollType: createForm.pollType,
+    anonymous: createForm.anonymous,
+    status: 'ACTIVE',
+    totalVotes: 0,
+    options: validOptions.map((content, i) => ({ id: i + 1, content, voteCount: 0 }))
   }
+  polls.value.unshift(optimistic)
+
+  showCreateDialog.value = false
+  resetCreateForm()
+  ElMessage.success('投票已发起')
+
+  try {
+    await classroomApi.createPoll(props.classroomId, {
+      title: optimistic.title,
+      pollType: optimistic.pollType,
+      anonymous: optimistic.anonymous,
+      options: validOptions
+    })
+  } catch (e) {
+    console.error('发起投票失败:', e)
+  }
+
+  broadcast('CREATE_POLL', {
+    title: optimistic.title,
+    pollType: optimistic.pollType,
+    anonymous: optimistic.anonymous,
+    options: validOptions
+  })
 }
 
 const resetCreateForm = () => {

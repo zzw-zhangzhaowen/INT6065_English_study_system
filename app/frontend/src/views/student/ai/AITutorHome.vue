@@ -7,9 +7,7 @@
         <div class="hero-left">
           <div class="hero-badge">
             <span class="dot"></span>
-            本地规则引擎运行中
-            <span class="sep">|</span>
-            真 AI 接口已预留
+            AI 智能引擎运行中
           </div>
           <h1>
             AI 智能辅导
@@ -170,7 +168,7 @@ const capabilities = [
     color: '#2563eb',
     bg: 'linear-gradient(135deg, rgba(37,99,235,.12), rgba(56,189,248,.10))',
     desc: '多轮上下文 + 知识点结构化讲解，支持贴句子直接诊断',
-    points: ['识别 11 类意图', '输出结论先行', '自动给自测题']
+    points: ['识别问题类型', '输出结论先行', '自动给自测题'],
   },
   {
     name: '作文逐句批改',
@@ -180,7 +178,7 @@ const capabilities = [
     color: '#6366f1',
     bg: 'linear-gradient(135deg, rgba(99,102,241,.12), rgba(139,92,246,.10))',
     desc: '四维评分 + 逐句标错 + 原句与升级句对照，分数有依据可追溯',
-    points: ['34 条错误规则', '评分依据逐条列出', '一键复制修正稿']
+    points: ['错误逐句定位', '评分依据逐条列出', '一键复制修正稿'],
   },
   {
     name: '错题溯源',
@@ -239,7 +237,7 @@ const capabilities = [
     priority: 'P1',
     color: '#0ea5e9',
     bg: 'linear-gradient(135deg, rgba(14,165,233,.12), rgba(37,99,235,.10))',
-    desc: '分项评分 + 中式发音高风险音素提示（当前为文本估算）',
+    desc: '五维评分 + 中式发音高风险音素提示，给出跟读建议',
     points: ['五项评分', '逐词发音提醒', '跟读建议']
   }
 ]

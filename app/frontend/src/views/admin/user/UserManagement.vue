@@ -130,13 +130,78 @@
         <el-button type="primary" @click="saveUser">保存</el-button>
       </template>
     </el-dialog>
+
+    <!-- 批量导入对话框 -->
+    <el-dialog v-model="showImportDialog" title="批量导入用户" width="720px" :close-on-click-modal="false">
+      <el-steps :active="importRows.length ? 2 : 1" align-center finish-status="success" style="margin-bottom: 20px;">
+        <el-step title="下载模板" description="按模板格式填写用户信息" />
+        <el-step title="上传文件" description="选择填好的 CSV 文件" />
+        <el-step title="确认导入" description="核对数据后批量写入" />
+      </el-steps>
+
+      <div class="import-hint">
+        <el-alert type="info" :closable="false" show-icon>
+          <template #title>
+            第一列「用户名」与「邮箱」为必填项，角色可填 学生 / 教师 / 管理员（留空默认学生），初始密码统一为 123456。
+          </template>
+        </el-alert>
+      </div>
+
+      <div class="import-toolbar">
+        <el-button @click="downloadImportTemplate">
+          <el-icon><Download /></el-icon>
+          下载导入模板
+        </el-button>
+        <el-upload
+          :auto-upload="false"
+          :show-file-list="false"
+          accept=".csv,text/csv"
+          :on-change="handleImportFile"
+          class="import-uploader"
+        >
+          <el-button type="primary" plain>
+            <el-icon><Upload /></el-icon>
+            选择 CSV 文件
+          </el-button>
+        </el-upload>
+        <span v-if="importFileName" class="import-filename">{{ importFileName }}（{{ importRows.length }} 条待导入）</span>
+      </div>
+
+      <el-table v-if="importRows.length" :data="importRows" height="300" border size="small">
+        <el-table-column type="index" label="#" width="50" />
+        <el-table-column prop="username" label="用户名" min-width="120" />
+        <el-table-column prop="realName" label="姓名" min-width="100" />
+        <el-table-column prop="email" label="邮箱" min-width="170" />
+        <el-table-column prop="phone" label="手机号" min-width="120" />
+        <el-table-column prop="roleName" label="角色" width="90" />
+        <el-table-column label="校验" width="90">
+          <template #default="{ row }">
+            <el-tag :type="row.valid ? 'success' : 'danger'" size="small">{{ row.valid ? '可导入' : '有缺失' }}</el-tag>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <el-empty v-else-if="importFileName" description="文件中没有可导入的数据行" :image-size="70" />
+
+      <template #footer>
+        <el-button @click="showImportDialog = false">取消</el-button>
+        <el-button
+          type="primary"
+          :loading="importing"
+          :disabled="!importableRows.length"
+          @click="confirmImport"
+        >
+          确认导入 {{ importableRows.length }} 条
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Upload, Search, User } from '@element-plus/icons-vue'
+import { Plus, Upload, Download, Search, User } from '@element-plus/icons-vue'
 import { adminApi } from '@/api/admin'
 import { learningApi } from '@/api/learning'
 import { useUserStore } from '@/stores/user'
@@ -270,8 +335,160 @@ const handleSelectionChange = (selection) => {
   selectedUsers.value = selection
 }
 
+/* ---------------- 批量导入 ---------------- */
+const showImportDialog = ref(false)
+const importRows = ref([])
+const importFileName = ref('')
+const importing = ref(false)
+
+const IMPORT_TEMPLATE = [
+  ['用户名', '姓名', '邮箱', '手机号', '角色'],
+  ['zhangsan', '张三', 'zhangsan@edu.cn', '13800000001', '学生'],
+  ['lisi', '李四', 'lisi@edu.cn', '13800000002', '教师']
+]
+
+const ROLE_NAME_MAP = {
+  '学生': 'ROLE_STUDENT', 'student': 'ROLE_STUDENT',
+  '教师': 'ROLE_TEACHER', 'teacher': 'ROLE_TEACHER',
+  '管理员': 'ROLE_ADMIN', 'admin': 'ROLE_ADMIN'
+}
+
+const importableRows = computed(() => importRows.value.filter(r => r.valid))
+
+const downloadImportTemplate = () => {
+  const content = '\ufeff' + IMPORT_TEMPLATE.map(r => r.join(',')).join('\n')
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = '用户批量导入模板.csv'
+  a.click()
+  URL.revokeObjectURL(url)
+  ElMessage.success('模板已下载')
+}
+
+// 解析一行 CSV（支持引号包裹的字段）
+const parseCsvLine = (line) => {
+  const cells = []
+  let cur = ''
+  let inQuote = false
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i]
+    if (inQuote) {
+      if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++ }
+      else if (ch === '"') inQuote = false
+      else cur += ch
+    } else if (ch === '"') {
+      inQuote = true
+    } else if (ch === ',') {
+      cells.push(cur.trim()); cur = ''
+    } else {
+      cur += ch
+    }
+  }
+  cells.push(cur.trim())
+  return cells
+}
+
+const handleImportFile = async (file) => {
+  const raw = file?.raw || file
+  if (!raw) return
+  try {
+    const text = await raw.text()
+    const lines = text.replace(/^\ufeff/, '').split(/\r?\n/).filter(l => l.trim())
+    if (lines.length < 2) {
+      ElMessage.warning('文件中没有数据行')
+      importRows.value = []
+      importFileName.value = raw.name
+      return
+    }
+    const header = parseCsvLine(lines[0]).map(h => h.replace(/\s/g, ''))
+    const idx = (name) => header.findIndex(h => h.includes(name))
+    const iUser = idx('用户名')
+    const iName = idx('姓名')
+    const iMail = idx('邮箱')
+    const iPhone = idx('手机')
+    const iRole = idx('角色')
+
+    importRows.value = lines.slice(1).map((line, i) => {
+      const cells = parseCsvLine(line)
+      const username = (iUser >= 0 ? cells[iUser] : '') || ''
+      const email = (iMail >= 0 ? cells[iMail] : '') || ''
+      const roleLabel = (iRole >= 0 ? cells[iRole] : '') || '学生'
+      const roleCode = ROLE_NAME_MAP[roleLabel] || ROLE_NAME_MAP['学生']
+      const roleName = roleCode === 'ROLE_ADMIN' ? '管理员' : (roleCode === 'ROLE_TEACHER' ? '教师' : '学生')
+      const missing = []
+      if (!username) missing.push('用户名')
+      if (!email) missing.push('邮箱')
+      return {
+        lineNo: i + 2,
+        username,
+        realName: (iName >= 0 ? cells[iName] : '') || '',
+        email,
+        phone: (iPhone >= 0 ? cells[iPhone] : '') || '',
+        roleCode,
+        roleName,
+        valid: missing.length === 0,
+        missing
+      }
+    })
+    importFileName.value = raw.name
+    const bad = importRows.value.filter(r => !r.valid).length
+    if (bad) {
+      ElMessage.warning(`解析到 ${importRows.value.length} 条数据，其中 ${bad} 条缺少必填项`)
+    } else {
+      ElMessage.success(`解析到 ${importRows.value.length} 条数据`)
+    }
+  } catch (e) {
+    console.error('解析导入文件失败:', e)
+    ElMessage.error('文件解析失败，请确认为 CSV 格式')
+  }
+}
+
+const confirmImport = async () => {
+  const rows = importableRows.value
+  if (!rows.length) return
+  importing.value = true
+  let success = 0
+  const failures = []
+  for (const row of rows) {
+    try {
+      const roleIds = roleOptions.value
+        .filter(r => r.roleCode === row.roleCode)
+        .map(r => r.id)
+      await adminApi.createUser({
+        username: row.username,
+        realName: row.realName,
+        email: row.email,
+        phone: row.phone,
+        password: '123456',
+        roleIds: roleIds.length ? roleIds : [3]
+      })
+      success++
+    } catch (e) {
+      failures.push(row.username)
+    }
+  }
+  importing.value = false
+  if (success && !failures.length) {
+    ElMessage.success(`成功导入 ${success} 个用户`)
+  } else if (success) {
+    ElMessage.warning(`成功导入 ${success} 个，失败 ${failures.length} 个：${failures.slice(0, 3).join('、')}`)
+  } else {
+    ElMessage.error('导入失败，请检查数据格式')
+  }
+  if (success) {
+    showImportDialog.value = false
+    importRows.value = []
+    importFileName.value = ''
+    loadUsers()
+  }
+}
+
 const importUsers = () => {
-  ElMessage.warning('批量导入功能暂未开放')
+  importRows.value = []
+  importFileName.value = ''
+  showImportDialog.value = true
 }
 
 const addUser = () => {
@@ -529,6 +746,33 @@ onMounted(async () => {
       display: flex;
       justify-content: center;
       padding-top: 24px;
+    }
+  }
+
+  .import-hint {
+    margin-bottom: 16px;
+
+    :deep(.el-alert__title) {
+      line-height: 1.6;
+    }
+  }
+
+  .import-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+
+    .import-uploader {
+      :deep(.el-upload) {
+        display: inline-block;
+      }
+    }
+
+    .import-filename {
+      color: var(--text-secondary);
+      font-size: 13px;
     }
   }
 }
