@@ -103,6 +103,17 @@ export function resolveMock(config) {
 
   /* ---------------- 学习社区 ---------------- */
   if (url === '/community/post/page') return page(db.communityPostPage(params))
+  if (/^\/community\/post\/\d+$/.test(url) && method === 'get') {
+    const id = Number(url.split('/').pop())
+    const p = db.COMMUNITY_POSTS.find(x => x.id === id) || db.COMMUNITY_POSTS[0]
+    if (!p) return ok({})
+    return ok({
+      ...p,
+      username: p.authorName || p.author || '同学',
+      isCollected: false,
+      replies: db.COMMUNITY_REPLIES.filter(r => r.postId === id)
+    })
+  }
   if (url === '/community/post' && method === 'post') {
     return ok({ id: Date.now(), ...body, author: body.author || '张伟', likes: 0, comments: 0, viewCount: 0 })
   }
@@ -262,7 +273,23 @@ export function resolveMock(config) {
   if (url === '/exam/submit' && method === 'post') return ok(db.examSubmit(body))
   if (url === '/exam/record/page') return page(db.examRecordPage(params))
   if (url.startsWith('/exam/record/') && method === 'get') {
-    return ok(db.examRecordDetail(url.split('/').pop()))
+    const record = db.examRecordDetail(url.split('/').pop())
+    const exam = db.EXAMS.find(e => e.id === record.examId) || db.EXAMS[0] || {}
+    const questions = db.examQuestions(record.examId || 8802).slice(0, 8)
+    const answerDetails = questions.map((q, i) => ({
+      questionId: q.id,
+      questionScore: q.score || 5,
+      question: { id: q.id, content: q.content, questionType: q.questionType || 'SINGLE_CHOICE', score: q.score || 5 },
+      answerRecord: { id: 9500 + i, isCorrect: i < 6 ? 1 : 0, obtainedScore: i < 6 ? (q.score || 5) : 0 }
+    }))
+    return ok({
+      record,
+      exam: { id: exam.id || record.examId, examName: exam.title || exam.examName || record.examName, totalScore: record.totalScore || 100 },
+      answerDetails,
+      rank: record.rank || 7,
+      percentile: record.percentile || 78,
+      wrongQuestions: questions.slice(6).map((q, i) => ({ id: 9600 + i, content: q.content, questionType: q.questionType }))
+    })
   }
   if (/^\/exam\/\d+\/questions$/.test(url)) {
     return ok(db.examQuestions(Number(url.split('/')[2])))
@@ -277,8 +304,35 @@ export function resolveMock(config) {
       avgScore: 76.4,
       maxScore: 94,
       minScore: 51,
-      passRate: 82.1
+      passRate: 82.1,
+      scoreDistribution: [
+        { range: '0-59', count: 2 }, { range: '60-69', count: 5 },
+        { range: '70-79', count: 11 }, { range: '80-89', count: 9 },
+        { range: '90-100', count: 5 }
+      ]
     })
+  }
+  if (/^\/exam\/\d+\/records$/.test(url) && method === 'get') {
+    const names = ['张伟', '李思远', '陈欣怡', '王梓涵', '赵明轩', '周雨桐', '刘子墨', '孙嘉懿']
+    return ok(names.map((name, i) => ({
+      id: 9200 + i, rank: i + 1, realName: name, studentNo: `2024010${101 + i}`,
+      obtainedScore: 94 - i * 3, totalScore: 100,
+      correctCount: 14 - Math.floor(i / 2), wrongCount: Math.floor(i / 2),
+      duration: 28 + i * 3, submitTime: `2026-11-13 09:${String(12 + i * 2).padStart(2, '0')}:00`,
+      status: 'FINISHED'
+    })))
+  }
+  if (/^\/exam\/\d+\/question-analysis$/.test(url) && method === 'get') {
+    const qs = db.examQuestions(Number(url.split('/')[2]))
+    return ok(qs.map((q, i) => ({
+      questionId: q.id, questionOrder: i + 1,
+      title: (q.content || '').slice(0, 40) || `第 ${i + 1} 题`,
+      questionType: q.questionType || 'SINGLE_CHOICE',
+      questionScore: q.score || 5,
+      totalAnswers: 32,
+      correctAnswers: Math.max(8, 30 - i * 2),
+      accuracy: Math.max(28, 94 - i * 6)
+    })))
   }
   if (/^\/exam\/\d+$/.test(url) && method === 'get') {
     const detail = db.examDetail(url.split('/').pop())
@@ -626,7 +680,8 @@ export function resolveMock(config) {
   {
     const pm = url.match(/^\/study-task\/plan\/(\d+)$/)
     if (pm && method === 'get') {
-      return page(paged(db.STUDY_TASKS.filter(t => t.planId === Number(pm[1])), params))
+      const list = db.STUDY_TASKS.filter(t => t.planId === Number(pm[1]))
+      return ok(list.length ? list : db.STUDY_TASKS.slice(0, 5))
     }
     const m = url.match(/^\/study-task\/(\d+)(\/toggle)?$/)
     if (m) {
@@ -756,30 +811,62 @@ export function resolveMock(config) {
       duration: 30, content: body.content || '今日学习打卡', continuousDays: 6
     }
     db.CHECKIN_LOGS.unshift(created)
-    return ok({ success: true, continuousDays: 6, checkinDays: db.CHECKIN_LOGS.length })
+    return ok({ success: true, message: `打卡成功，已连续打卡 ${created.continuousDays} 天`, continuousDays: 6, checkinDays: db.CHECKIN_LOGS.length })
   }
-  if (url === '/checkin/today') return ok({ checked: false, checkinTime: null, continuousDays: 5 })
-  if (url === '/checkin/calendar') {
-    const days = Array.from({ length: 30 }, (_, i) => {
-      const d = new Date(2026, 10, i + 1)
-      const pad = n => String(n).padStart(2, '0')
-      return {
-        date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
-        checked: i % 3 !== 0,
-        checkinTime: i % 3 !== 0 ? '21:04:18' : null
-      }
+  if (url === '/checkin/today') {
+    const now = new Date()
+    const pad = n => String(n).padStart(2, '0')
+    const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+    const hit = db.CHECKIN_LOGS.find(c => c.checkinDate === todayStr)
+    return ok({
+      hasCheckedIn: !!hit,
+      checked: !!hit,
+      checkinTime: hit ? hit.checkinTime : null,
+      continuousDays: hit ? hit.continuousDays : 0
     })
+  }
+  if (url === '/checkin/calendar') {
+    const year = Number(params.year) || new Date().getFullYear()
+    const month = Number(params.month) || new Date().getMonth() + 1
+    const daysInMonth = new Date(year, month, 0).getDate()
+    const pad = n => String(n).padStart(2, '0')
+    const days = []
+    for (let i = 1; i <= daysInMonth; i++) {
+      const dateStr = `${year}-${pad(month)}-${pad(i)}`
+      const hit = db.CHECKIN_LOGS.find(c => c.checkinDate === dateStr)
+      days.push({
+        date: dateStr,
+        checkinDate: dateStr,
+        checked: !!hit,
+        checkinTime: hit ? hit.checkinTime : null
+      })
+    }
     return ok(days)
   }
   if (url === '/checkin/stats') {
-    return ok({ totalDays: 23, continuousDays: 12, thisMonth: 16, totalMinutes: 780, longestStreak: 18 })
+    const logged = db.CHECKIN_LOGS.length
+    return ok({
+      totalDays: 23,
+      continuousDays: 12,
+      monthDays: 16,
+      thisMonth: 16,
+      totalMinutes: 780,
+      longestStreak: 18,
+      loggedRecords: logged
+    })
   }
   if (url === '/checkin/ranking') {
     const list = db.CHECKIN_LOGS.slice(0, 10).map((c, i) => ({
-      rank: i + 1, userId: c.userId, userName: c.userName,
-      continuousDays: 12 - i, checkinDays: 23 - i, totalMinutes: 780 - i * 40
+      rank: i + 1,
+      userId: c.userId,
+      nickname: c.userName,
+      userName: c.userName,
+      totalDays: 23 - i,
+      continuousDays: 12 - i,
+      checkinDays: 23 - i,
+      totalMinutes: 780 - i * 40
     }))
-    return page(paged(list, params))
+    return ok(list)
   }
   if (url === '/checkin/study-data' && method === 'put') return ok({ success: true })
 

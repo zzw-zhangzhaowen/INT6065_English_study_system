@@ -410,32 +410,12 @@ const performSearch = async () => {
 
   try {
     const res = await searchApi.globalSearch({ keyword, pageSize: 10 })
-    searchResults.value = res.data || []
+    const data = res.data
+    searchResults.value = Array.isArray(data)
+      ? data
+      : (data?.records || [])
   } catch (error) {
-    // 静默失败，使用模拟数据作为回退
-    searchResults.value = [
-      {
-        id: 1,
-        type: 'question',
-        typeText: '题目',
-        title: '阅读理解 - ' + keyword,
-        description: '四级阅读理解专项练习'
-      },
-      {
-        id: 2,
-        type: 'resource',
-        typeText: '资源',
-        title: '学习资料 - ' + keyword,
-        description: '四级词汇必背资料'
-      },
-      {
-        id: 3,
-        type: 'post',
-        typeText: '帖子',
-        title: '经验分享 - ' + keyword,
-        description: '学习经验交流分享'
-      }
-    ]
+    searchResults.value = []
   } finally {
     searching.value = false
   }

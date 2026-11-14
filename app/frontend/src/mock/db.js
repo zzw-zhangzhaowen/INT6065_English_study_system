@@ -817,12 +817,12 @@ export const QUESTION_BANK = QUESTION_SEEDS.map((q, i) => ({
 }))
 
 export const QUESTION_CATEGORIES = [
-  { id: 1, categoryName: '听力理解', count: 0 },
-  { id: 2, categoryName: '阅读理解', count: 5 },
-  { id: 3, categoryName: '词汇与语法', count: 5 },
-  { id: 4, categoryName: '完形填空', count: 2 },
-  { id: 5, categoryName: '翻译', count: 1 },
-  { id: 6, categoryName: '写作', count: 1 }
+  { id: 1, name: '听力理解', categoryName: '听力理解', count: 0, parentId: 0, children: [] },
+  { id: 2, name: '阅读理解', categoryName: '阅读理解', count: 5, parentId: 0, children: [] },
+  { id: 3, name: '词汇与语法', categoryName: '词汇与语法', count: 5, parentId: 0, children: [] },
+  { id: 4, name: '完形填空', categoryName: '完形填空', count: 2, parentId: 0, children: [] },
+  { id: 5, name: '翻译', categoryName: '翻译', count: 1, parentId: 0, children: [] },
+  { id: 6, name: '写作', categoryName: '写作', count: 1, parentId: 0, children: [] }
 ]
 
 /* ---------------- 学习资源（学习中心 / 教师资源管理） ---------------- */
@@ -964,16 +964,17 @@ export function examRecordDetail(recordId) {
   }
   return EXAM_RECORDS.find(r => r.id === Number(recordId)) || {
     id: Number(recordId),
-    examId: 0,
-    examName: '考试记录',
-    obtainedScore: 0,
+    examId: 8802,
+    examName: 'CET4 全真模拟（第 6 套）',
+    obtainedScore: 82,
     totalScore: 100,
     passScore: 60,
-    correctCount: 0,
-    wrongCount: 0,
-    duration: 0,
-    rank: 0,
-    percentile: 0,
+    correctCount: 12,
+    wrongCount: 2,
+    duration: 46,
+    rank: 7,
+    percentile: 78,
+    submitTime: '2026-11-11 15:42:18',
     status: 'FINISHED'
   }
 }
@@ -1505,44 +1506,44 @@ export const MONITOR_DATA = {
    ============================================================ */
 
 export const RESOURCE_CATEGORIES = [
-  { id: 401, categoryName: 'CET-4 真题', parentId: 0, level: 1, resourceCount: 24, sortOrder: 1 },
-  { id: 402, categoryName: 'CET-6 真题', parentId: 0, level: 1, resourceCount: 12, sortOrder: 2 },
-  { id: 403, categoryName: '写作专项', parentId: 0, level: 1, resourceCount: 18, sortOrder: 3 },
-  { id: 404, categoryName: '听力训练', parentId: 0, level: 1, resourceCount: 15, sortOrder: 4 },
-  { id: 405, categoryName: '口语话题', parentId: 0, level: 1, resourceCount: 9, sortOrder: 5 },
-  { id: 406, categoryName: '核心词汇', parentId: 403, level: 2, resourceCount: 11, sortOrder: 6 },
-  { id: 407, categoryName: '长难句解析', parentId: 403, level: 2, resourceCount: 7, sortOrder: 7 }
+  { id: 401, name: 'CET-4 真题', categoryName: 'CET-4 真题', parentId: 0, level: 1, resourceCount: 24, sortOrder: 1, children: [] },
+  { id: 402, name: 'CET-6 真题', categoryName: 'CET-6 真题', parentId: 0, level: 1, resourceCount: 12, sortOrder: 2, children: [] },
+  { id: 403, name: '写作专项', categoryName: '写作专项', parentId: 0, level: 1, resourceCount: 18, sortOrder: 3, children: [] },
+  { id: 404, name: '听力训练', categoryName: '听力训练', parentId: 0, level: 1, resourceCount: 15, sortOrder: 4, children: [] },
+  { id: 405, name: '口语话题', categoryName: '口语话题', parentId: 0, level: 1, resourceCount: 9, sortOrder: 5, children: [] },
+  { id: 406, name: '核心词汇', categoryName: '核心词汇', parentId: 403, level: 2, resourceCount: 11, sortOrder: 6, children: [] },
+  { id: 407, name: '长难句解析', categoryName: '长难句解析', parentId: 403, level: 2, resourceCount: 7, sortOrder: 7, children: [] }
 ]
 
 export const STUDY_NOTES = [
   {
     id: 601, title: '虚拟语气三种常见考点整理',
     content: 'if 引导的虚拟语气：过去式表示与现在相反；should have done 表示与过去相反；would rather 句型注意省略结构。重点整理了 "wish + had done" 与 "if + had done" 的互换。',
-    type: 'NOTE', tags: ['语法', '虚拟语气', 'CET-4'], userId: 1001, userName: '张伟',
+    type: 'NOTE', tags: '语法,虚拟语气,CET-4', userId: 1001, userName: '张伟',
     createTime: '2026-11-10 20:14:00', updateTime: '2026-11-12 09:30:00', viewCount: 46
   },
   {
     id: 602, title: '写作 Task 2 让步段的三种写法',
     content: '1) Although..., ...  2) While it is true that..., ...  3) Admittedly, ...; nevertheless, ...。老师批改时强调让步段必须落在具体论据上，不能空谈。',
-    type: 'NOTE', tags: ['写作', 'Task 2', '模板'], userId: 1001, userName: '张伟',
+    type: 'NOTE', tags: '写作,Task 2,模板', userId: 1001, userName: '张伟',
     createTime: '2026-11-09 21:05:00', updateTime: '2026-11-11 16:42:00', viewCount: 72
   },
   {
     id: 603, title: '听力场景词：机场值机高频表达',
     content: 'check in / boarding pass / gate / baggage drop / aisle seat / window seat / connecting flight —— 整理了 20 个机场场景常见词与例句。',
-    type: 'NOTE', tags: ['听力', '场景词'], userId: 1002, userName: '李娜',
+    type: 'NOTE', tags: '听力,场景词', userId: 1002, userName: '李娜',
     createTime: '2026-11-08 19:22:00', updateTime: '2026-11-10 08:15:00', viewCount: 58
   },
   {
     id: 604, title: '长难句拆解练习记录（第 3—8 讲）',
     content: '主句先行是关键：先把所有 that/which/who 引导的修饰成分括起来，剩下的就是主干。练习了 6 讲，识别准确率从 60% 提升到 85%。',
-    type: 'NOTE', tags: ['长难句', '练习'], userId: 1003, userName: '王强',
+    type: 'NOTE', tags: '长难句,练习', userId: 1003, userName: '王强',
     createTime: '2026-11-07 22:40:00', updateTime: '2026-11-09 07:20:00', viewCount: 39
   },
   {
     id: 605, title: '四级高频词根词缀速记',
     content: '-spect- 看（inspect/respect）、-duc- 引导（introduce/conduct）、-tain- 持有（maintain/retain）。词根词缀推词义比死记更快。',
-    type: 'NOTE', tags: ['词汇', '词根词缀'], userId: 1004, userName: '刘洋',
+    type: 'NOTE', tags: '词汇,词根词缀', userId: 1004, userName: '刘洋',
     createTime: '2026-11-06 18:55:00', updateTime: '2026-11-08 11:10:00', viewCount: 91
   }
 ]
@@ -1642,9 +1643,9 @@ export const CLASSROOM_SIGN_INS = [
 ]
 
 export const COMMUNITY_REPLIES = [
-  { id: 1601, postId: 1, userId: 1002, userName: '李娜', content: '补充一点：would rather 后面接动词原形，不能用过去式。', likeCount: 8, isLiked: false, createTime: '2026-11-12 21:30:00' },
-  { id: 1602, postId: 1, userId: 1003, userName: '王强', content: '同意，顺便提醒 wish + had done 结构里谓语要用过去分词。', likeCount: 5, isLiked: false, createTime: '2026-11-12 22:10:00' },
-  { id: 1603, postId: 2, userId: 1001, userName: '张伟', content: '这个结构我总是混，老师讲的那张对照表很有用。', likeCount: 3, isLiked: false, createTime: '2026-11-11 19:05:00' }
+  { id: 1601, postId: 7001, userId: 1002, userName: '李娜', username: '李娜', avatar: '', content: '补充一点：would rather 后面接动词原形，不能用过去式。', likeCount: 8, isLiked: false, createTime: '2026-11-12 21:30:00' },
+  { id: 1602, postId: 7001, userId: 1003, userName: '王强', username: '王强', avatar: '', content: '同意，顺便提醒 wish + had done 结构里谓语要用过去分词。', likeCount: 5, isLiked: false, createTime: '2026-11-12 22:10:00' },
+  { id: 1603, postId: 7002, userId: 1001, userName: '张伟', username: '张伟', avatar: '', content: '这个结构我总是混，老师讲的那张对照表很有用。', likeCount: 3, isLiked: false, createTime: '2026-11-11 19:05:00' }
 ]
 
 export const FOLLOWED_USERS = [1002, 1003]
